@@ -191,8 +191,53 @@
             left: 0;
         }
         
+        .tool-selector {
+            background: #00b894;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .tool-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .tool-btn {
+            background: white;
+            color: #00b894;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .tool-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .tool-btn.secondary {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .support-box {
+            background: #6c5ce7;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
-            .form-row, .breakdown {
+            .form-row, .breakdown, .tool-buttons {
                 grid-template-columns: 1fr;
             }
         }
@@ -252,6 +297,15 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="workloadApproach">Calculate based on:</label>
+                    <select id="workloadApproach" required>
+                        <option value="realistic" selected>Realistic student workload (35 hours/week total)</option>
+                        <option value="maximum">Legal maximum if they were employees (48 hours/week)</option>
+                        <option value="current">Current unrealistic expectations (72+ hours/week)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label for="weeklyReading">Weekly Reading (hours)</label>
                     <input type="number" id="weeklyReading" placeholder="e.g., 8" min="0" required>
                 </div>
@@ -285,40 +339,61 @@
     <script>
         document.getElementById('realityForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Form submitted!'); // Debug line
             calculateReality();
         });
 
         function calculateReality() {
-            console.log('Calculate function called!'); // Debug line
-            
             // Get form values
             const moduleName = document.getElementById('moduleName').value;
             const credits = parseInt(document.getElementById('credits').value);
             const semesterLength = parseInt(document.getElementById('semesterLength').value);
             const totalModules = parseInt(document.getElementById('totalModules').value);
+            const workloadApproach = document.getElementById('workloadApproach').value;
             const weeklyReading = parseInt(document.getElementById('weeklyReading').value) || 0;
             const lectures = parseInt(document.getElementById('lectures').value) || 0;
             const assignments = parseInt(document.getElementById('assignments').value) || 0;
             const otherWork = parseInt(document.getElementById('otherWork').value) || 0;
-            
-            console.log('Values:', {moduleName, credits, semesterLength, totalModules, weeklyReading, lectures, assignments, otherWork}); // Debug line
 
             // Calculate expectations
             const totalWeeklyHours = weeklyReading + lectures + assignments + otherWork;
             const totalSemesterHours = credits * 10; // 10 hours per credit
             const expectedWeeklyHours = totalSemesterHours / semesterLength;
 
-            // Student reality constants
-            const sleepHours = 49; // 7 hours × 7 days
-            const workHours = 20; // Part-time job
-            const commuteHours = 5;
-            const lifeAdminHours = 14; // Eating, washing, basic life
-            const socialHours = 8; // 2 evenings per week
-            const totalNonStudyHours = sleepHours + workHours + commuteHours + lifeAdminHours + socialHours;
-            const availableStudyHours = 168 - totalNonStudyHours; // 72 hours total
-            const hoursPerModule = availableStudyHours / totalModules; // Now uses actual module count
-            const totalStudentWorkload = totalWeeklyHours * totalModules; // What if ALL modules ask for this much?
+            // Calculate based on selected approach
+            let availableStudyHours;
+            let approachDescription;
+            let legalityWarning = '';
+            
+            if (workloadApproach === 'realistic') {
+                availableStudyHours = 35; // Reasonable full-time equivalent
+                approachDescription = 'Realistic Approach (35 hours total/week)';
+            } else if (workloadApproach === 'maximum') {
+                availableStudyHours = 48; // Legal maximum under EU Working Time Directive
+                approachDescription = 'Legal Maximum (48 hours total/week)';
+            } else {
+                // Current unrealistic expectations based on student having time after life necessities
+                const sleepHours = 49; // 7 hours × 7 days
+                const workHours = 20; // Part-time job
+                const commuteHours = 5;
+                const lifeAdminHours = 14; // Eating, washing, basic life
+                const socialHours = 8; // 2 evenings per week
+                const totalNonStudyHours = sleepHours + workHours + commuteHours + lifeAdminHours + socialHours;
+                availableStudyHours = 168 - totalNonStudyHours; // 72 hours
+                approachDescription = 'Current Unrealistic Expectations (72+ hours total/week)';
+            }
+            
+            const hoursPerModule = availableStudyHours / totalModules;
+            const totalStudentWorkload = totalWeeklyHours * totalModules;
+            
+            // Check if we're asking for illegal workload
+            if (totalStudentWorkload > 48) {
+                legalityWarning = `
+                    <div style="background: #d63031; color: white; padding: 15px; margin: 15px 0; border-radius: 8px; border-left: 5px solid #fff;">
+                        <strong>⚖️ Legal Reality Check:</strong> You're asking students to work ${totalStudentWorkload} hours/week. 
+                        This would be <strong>illegal under UK employment law</strong> if they were employees.
+                    </div>
+                `;
+            }
 
             // Generate results
             const resultsDiv = document.getElementById('results');
@@ -338,20 +413,27 @@
                 <div class="reality-check" style="background-color: ${realityCheckColor}">
                     <h3>${realityCheckMessage}</h3>
                     <p><strong>You're asking for ${totalWeeklyHours} hours/week</strong></p>
-                    <p>A real student has approximately <strong>${hoursPerModule.toFixed(1)} hours/week</strong> available for your module</p>
+                    <p>Using ${approachDescription}: <strong>${hoursPerModule.toFixed(1)} hours/week</strong> available for your module</p>
                     <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
                         If ALL ${totalModules} modules asked for this much, students would need <strong>${totalStudentWorkload} hours/week</strong> for study alone!
                     </p>
                 </div>
 
+                ${legalityWarning}
+
                 <div class="student-week">
-                    <h3>📅 A Real Student's Week (168 hours total)</h3>
-                    <p><strong>Sleep:</strong> ${sleepHours} hours</p>
-                    <p><strong>Part-time work:</strong> ${workHours} hours</p>
-                    <p><strong>Commuting:</strong> ${commuteHours} hours</p>
-                    <p><strong>Life admin:</strong> ${lifeAdminHours} hours (eating, washing, existing)</p>
-                    <p><strong>Social connection:</strong> ${socialHours} hours</p>
-                    <p><strong>Available for ALL study:</strong> ${availableStudyHours} hours</p>
+                    <h3>📊 ${approachDescription}</h3>
+                    ${workloadApproach === 'current' ? `
+                        <p><strong>Sleep:</strong> 49 hours (7/night)</p>
+                        <p><strong>Part-time work:</strong> 20 hours</p>
+                        <p><strong>Commuting:</strong> 5 hours</p>
+                        <p><strong>Life admin:</strong> 14 hours (eating, washing, existing)</p>
+                        <p><strong>Social connection:</strong> 8 hours</p>
+                        <p><strong>Available for study:</strong> ${availableStudyHours} hours</p>
+                    ` : `
+                        <p><strong>Total weekly commitment:</strong> ${availableStudyHours} hours</p>
+                        <p><strong>Comparable to:</strong> ${availableStudyHours === 35 ? 'A full-time job' : 'Legal maximum working hours'}</p>
+                    `}
                     <p><strong>Taking ${totalModules} modules:</strong> ${hoursPerModule.toFixed(1)} hours each</p>
                 </div>
 
@@ -375,8 +457,24 @@
                 </div>
 
                 ${generateSuggestions(totalWeeklyHours, hoursPerModule, weeklyReading, assignments)}
-                
-                <div style="background: #6c5ce7; color: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: center;">
+
+                <div class="tool-selector">
+                    <h3>📅 Ready to Plan This Properly?</h3>
+                    <p>Use our integrated planning tools to redesign your ${moduleName} within realistic time constraints.</p>
+                    <div class="tool-buttons">
+                        <button class="tool-btn" onclick="goToWeeklyPlanner('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})">
+                            📋 Weekly Planner
+                        </button>
+                        <button class="tool-btn secondary" onclick="goToLearningDesign('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})">
+                            🎯 Learning Design
+                        </button>
+                    </div>
+                    <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">
+                        Start with Weekly Planner for quick fixes, or jump to Learning Design for comprehensive redesign
+                    </p>
+                </div>
+
+                <div class="support-box">
                     <h3>🤝 Need Help Strategising a Solution?</h3>
                     <p>If you're looking at these results thinking "Oh dear, what have I done?", don't panic!</p>
                     <p><strong>Contact your school or institution's Learning Designer</strong> for support with redesigning your module to be more effective, engaging, and realistic.</p>
@@ -432,6 +530,14 @@
                     </ul>
                 </div>
             `;
+        }
+
+        function goToWeeklyPlanner(moduleName, semesterLength, weeklyHours) {
+            alert(`Weekly Planner coming soon!\n\nThis will help you plan your ${moduleName} across ${semesterLength} weeks with ${weeklyHours} hours per week target.`);
+        }
+
+        function goToLearningDesign(moduleName, semesterLength, weeklyHours) {
+            alert(`Learning Design Tool coming soon!\n\nThis will help you design proper learning outcomes and activities for ${moduleName} using backwards design principles.`);
         }
     </script>
 </body>
