@@ -241,6 +241,17 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="totalModules">How many modules is the student taking this semester?</label>
+                    <select id="totalModules" required>
+                        <option value="">Select number</option>
+                        <option value="3">3 modules</option>
+                        <option value="4" selected>4 modules (typical)</option>
+                        <option value="5">5 modules</option>
+                        <option value="6">6 modules (overload)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label for="weeklyReading">Weekly Reading (hours)</label>
                     <input type="number" id="weeklyReading" placeholder="e.g., 8" min="0" required>
                 </div>
@@ -285,12 +296,13 @@
             const moduleName = document.getElementById('moduleName').value;
             const credits = parseInt(document.getElementById('credits').value);
             const semesterLength = parseInt(document.getElementById('semesterLength').value);
+            const totalModules = parseInt(document.getElementById('totalModules').value);
             const weeklyReading = parseInt(document.getElementById('weeklyReading').value) || 0;
             const lectures = parseInt(document.getElementById('lectures').value) || 0;
             const assignments = parseInt(document.getElementById('assignments').value) || 0;
             const otherWork = parseInt(document.getElementById('otherWork').value) || 0;
             
-            console.log('Values:', {moduleName, credits, semesterLength, weeklyReading, lectures, assignments, otherWork}); // Debug line
+            console.log('Values:', {moduleName, credits, semesterLength, totalModules, weeklyReading, lectures, assignments, otherWork}); // Debug line
 
             // Calculate expectations
             const totalWeeklyHours = weeklyReading + lectures + assignments + otherWork;
@@ -305,7 +317,8 @@
             const socialHours = 8; // 2 evenings per week
             const totalNonStudyHours = sleepHours + workHours + commuteHours + lifeAdminHours + socialHours;
             const availableStudyHours = 168 - totalNonStudyHours; // 72 hours total
-            const hoursPerModule = availableStudyHours / 4; // Assuming 4 modules
+            const hoursPerModule = availableStudyHours / totalModules; // Now uses actual module count
+            const totalStudentWorkload = totalWeeklyHours * totalModules; // What if ALL modules ask for this much?
 
             // Generate results
             const resultsDiv = document.getElementById('results');
@@ -326,6 +339,9 @@
                     <h3>${realityCheckMessage}</h3>
                     <p><strong>You're asking for ${totalWeeklyHours} hours/week</strong></p>
                     <p>A real student has approximately <strong>${hoursPerModule.toFixed(1)} hours/week</strong> available for your module</p>
+                    <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                        If ALL ${totalModules} modules asked for this much, students would need <strong>${totalStudentWorkload} hours/week</strong> for study alone!
+                    </p>
                 </div>
 
                 <div class="student-week">
@@ -336,7 +352,7 @@
                     <p><strong>Life admin:</strong> ${lifeAdminHours} hours (eating, washing, existing)</p>
                     <p><strong>Social connection:</strong> ${socialHours} hours</p>
                     <p><strong>Available for ALL study:</strong> ${availableStudyHours} hours</p>
-                    <p><strong>Available for YOUR module:</strong> ${hoursPerModule.toFixed(1)} hours</p>
+                    <p><strong>Taking ${totalModules} modules:</strong> ${hoursPerModule.toFixed(1)} hours each</p>
                 </div>
 
                 <div class="breakdown">
@@ -359,6 +375,15 @@
                 </div>
 
                 ${generateSuggestions(totalWeeklyHours, hoursPerModule, weeklyReading, assignments)}
+                
+                <div style="background: #6c5ce7; color: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: center;">
+                    <h3>🤝 Need Help Strategising a Solution?</h3>
+                    <p>If you're looking at these results thinking "Oh dear, what have I done?", don't panic!</p>
+                    <p><strong>Contact your school or institution's Learning Designer</strong> for support with redesigning your module to be more effective, engaging, and realistic.</p>
+                    <p style="font-size: 0.9em; margin-top: 15px; opacity: 0.9;">
+                        Remember: efficient learning beats exhausted students every time.
+                    </p>
+                </div>
             `;
             
             resultsDiv.style.display = 'block';
