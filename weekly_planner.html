@@ -343,6 +343,16 @@
                 Remember: students are juggling multiple modules, part-time work, and life!
             </div>
             
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                <h3 style="margin-bottom: 15px;">📅 Semester Start Date</h3>
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;">
+                    <input type="date" id="startDate" style="padding: 10px; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 16px;" onchange="updateAllWeekDates()">
+                    <button onclick="setToday()" style="background: #74b9ff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                        Set to Today
+                    </button>
+                </div>
+            </div>
+            
             <div id="weeksContainer">
                 <!-- Week planners will be generated here -->
             </div>
@@ -398,6 +408,7 @@
         let targetWeeklyHours = 18;
         let semesterWeeks = 12;
         let moduleNameText = 'Your Module';
+        let semesterStartDate = new Date(); // Will be set from user input or default
 
         // Initialize the planner
         document.addEventListener('DOMContentLoaded', function() {
@@ -414,6 +425,12 @@
             semesterWeeks = parseInt(urlParams.get('weeks')) || 12;
             targetWeeklyHours = parseFloat(urlParams.get('hours')) || 18;
             
+            // Set default start date to next Monday
+            const today = new Date();
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
+            semesterStartDate = nextMonday;
+            
             // Additional data for context
             const credits = urlParams.get('credits') || '';
             const approach = urlParams.get('approach') || '';
@@ -422,6 +439,7 @@
             document.getElementById('moduleName').textContent = moduleNameText;
             document.getElementById('semesterLength').textContent = semesterWeeks + ' weeks';
             document.getElementById('targetHours').textContent = targetWeeklyHours + ' hours';
+            document.getElementById('startDate').value = formatDateForInput(semesterStartDate);
             
             // Add contextual information if available
             if (credits && approach) {
@@ -435,6 +453,129 @@
             }
         }
 
+        function setToday() {
+            const today = new Date();
+            document.getElementById('startDate').value = formatDateForInput(today);
+            semesterStartDate = today;
+            updateAllWeekDates();
+        }
+
+        function formatDateForInput(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function getWeekDate(weekNumber) {
+            const weekStart = new Date(semesterStartDate);
+            weekStart.setDate(semesterStartDate.getDate() + (weekNumber - 1) * 7);
+            return weekStart.toLocaleDateString('en-GB', { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short' 
+            });
+        }
+
+        function updateAllWeekDates() {
+            const startDateInput = document.getElementById('startDate');
+            if (startDateInput.value) {
+                semesterStartDate = new Date(startDateInput.value);
+                
+                // Update all existing weeks
+                document.querySelectorAll('.week-planner').forEach(week => {
+                    const weekNum = parseInt(week.id.split('-')[1]);
+                    const dateElement = week.querySelector('.week-header div:first-child div:last-child');
+                    if (dateElement) {
+                        dateElement.textContent = `Week beginning: ${getWeekDate(weekNum)}`;
+                    }
+                });
+            }
+        }
+
+        function duplicateWeek(weekNum) {
+            const sourceWeek = document.getElementById(`week-${weekNum}`);
+            const topic = document.getElementById(`topic-${weekNum}`).value;
+            
+            // Get all activities from source week
+            const activities = [];
+            sourceWeek.querySelectorAll('.activity-item').forEach(activity => {
+                const inputs = activity.querySelectorAll('input, select');
+                activities.push({
+                    description: inputs[0].value,
+                    type: inputs[1].value,
+                    hours: inputs[2].value
+                });
+            });
+            
+            // Add new week
+            addWeek();
+            const newWeekNum = weekCount;
+            
+            // Copy topic (with "Copy of" prefix)
+            document.getElementById(`topic-${newWeekNum}`).value = topic ? `Copy of ${topic}` : '';
+            
+            // Copy activities
+            const newWeekActivities = document.getElementById(`activities-${newWeekNum}`);
+            // Remove the default empty activity
+            newWeekActivities.innerHTML = '';
+            
+            activities.forEach((activity, index) => {
+                if (index === 0) {
+                    // Add first activity
+                    const activityHTML = `
+                        <div class="activity-item">
+                            <input type="text" placeholder="Activity description" value="${activity.description}" onchange="updateWeekTotal(${newWeekNum})">
+                            <select onchange="updateWeekTotal(${newWeekNum})">
+                                <option value="">Select type</option>
+                                <option value="lecture" ${activity.type === 'lecture' ? 'selected' : ''}>Lecture</option>
+                                <option value="seminar" ${activity.type === 'seminar' ? 'selected' : ''}>Seminar</option>
+                                <option value="workshop" ${activity.type === 'workshop' ? 'selected' : ''}>Workshop</option>
+                                <option value="reading" ${activity.type === 'reading' ? 'selected' : ''}>Reading</option>
+                                <option value="assignment" ${activity.type === 'assignment' ? 'selected' : ''}>Assignment Work</option>
+                                <option value="research" ${activity.type === 'research' ? 'selected' : ''}>Independent Research</option>
+                                <option value="discussion" ${activity.type === 'discussion' ? 'selected' : ''}>Discussion</option>
+                                <option value="practical" ${activity.type === 'practical' ? 'selected' : ''}>Practical Exercise</option>
+                            </select>
+                            <input type="number" placeholder="Hours" min="0" step="0.5" value="${activity.hours}" onchange="updateWeekTotal(${newWeekNum})" style="max-width: 100px;">
+                            <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                        </div>
+                    `;
+                    newWeekActivities.insertAdjacentHTML('beforeend', activityHTML);
+                } else {
+                    // Add additional activities
+                    addActivity(newWeekNum);
+                    const lastActivity = newWeekActivities.lastElementChild;
+                    const inputs = lastActivity.querySelectorAll('input, select');
+                    inputs[0].value = activity.description;
+                    inputs[1].value = activity.type;
+                    inputs[2].value = activity.hours;
+                }
+            });
+            
+            // Show remove buttons if multiple activities
+            const allActivities = newWeekActivities.querySelectorAll('.activity-item');
+            if (allActivities.length > 1) {
+                allActivities.forEach(activity => {
+                    activity.querySelector('.remove-btn').style.display = 'block';
+                });
+            }
+            
+            updateWeekTotal(newWeekNum);
+            
+            // Scroll to new week
+            document.getElementById(`week-${newWeekNum}`).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function removeWeek(weekNum) {
+            if (document.querySelectorAll('.week-planner').length <= 1) {
+                alert('You need at least one week in your plan!');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to remove Week ${weekNum}?`)) {
+                document.getElementById(`week-${weekNum}`).remove();
+                calculateSummary();
+            }
+        }
+
         function generateInitialWeeks() {
             for (let i = 1; i <= semesterWeeks; i++) {
                 addWeek(i);
@@ -444,12 +585,28 @@
         function addWeek(weekNumber = null) {
             weekCount++;
             const weekNum = weekNumber || weekCount;
+            const weekDate = getWeekDate(weekNum);
             
             const weekHTML = `
                 <div class="week-planner" id="week-${weekNum}">
                     <div class="week-header">
-                        <div class="week-number">Week ${weekNum}</div>
-                        <div class="week-total" id="total-${weekNum}">0 hours</div>
+                        <div>
+                            <div class="week-number">Week ${weekNum}</div>
+                            <div style="font-size: 0.9em; color: #7f8c8d; margin-top: 5px;">
+                                Week beginning: ${weekDate}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="week-total" id="total-${weekNum}">0 hours</div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="duplicateWeek(${weekNum})" style="background: #00b894; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Duplicate this week">
+                                    📋
+                                </button>
+                                <button onclick="removeWeek(${weekNum})" style="background: #ff6b6b; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Remove this week">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
