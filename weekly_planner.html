@@ -92,6 +92,34 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #ecf0f1;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .week-header:hover {
+            background-color: #f8f9fa;
+            margin: -25px -25px 20px -25px;
+            padding: 25px 25px 15px 25px;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .week-content {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            overflow: hidden;
+        }
+        
+        .week-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .collapse-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
         }
         
         .week-number {
@@ -401,6 +429,10 @@
                 </div>
             </div>
         </div>
+        
+        <footer style="background: #2c3e50; color: white; padding: 20px; text-align: center; font-size: 0.9em;">
+            <p>© Copyright 2025 | <a href="https://www.linkedin.com/in/davidcmillar/" target="_blank" style="color: #74b9ff; text-decoration: none;">David Calum Millar</a> is licensed under CC BY-NC-ND 4.0</p>
+        </footer>
     </div>
 
     <script>

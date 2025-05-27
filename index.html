@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Reality Engine | University of Dundee</title>
+    <title>Student Reality Check | Academic Workload Calculator</title>
     <style>
         * {
             margin: 0;
@@ -76,7 +76,7 @@
             color: #2c3e50;
         }
         
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
             border: 2px solid #ecf0f1;
@@ -85,9 +85,16 @@
             transition: border-color 0.3s;
         }
         
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #667eea;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9em;
         }
         
         .form-row {
@@ -123,7 +130,6 @@
         }
         
         .reality-check {
-            background: #ff6b6b;
             color: white;
             padding: 20px;
             border-radius: 8px;
@@ -134,6 +140,15 @@
         .reality-check h3 {
             font-size: 1.5em;
             margin-bottom: 10px;
+        }
+        
+        .legal-warning {
+            background: #d63031;
+            color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 5px solid #fff;
         }
         
         .breakdown {
@@ -200,31 +215,21 @@
             text-align: center;
         }
         
-        .tool-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
         .tool-btn {
             background: white;
             color: #00b894;
             border: none;
-            padding: 12px 15px;
+            padding: 15px 30px;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
+            display: inline-block;
+            margin-top: 15px;
         }
         
         .tool-btn:hover {
             transform: translateY(-2px);
-        }
-        
-        .tool-btn.secondary {
-            background: #2c3e50;
-            color: white;
         }
         
         .support-box {
@@ -237,7 +242,7 @@
         }
         
         @media (max-width: 768px) {
-            .form-row, .breakdown, .tool-buttons {
+            .form-row, .breakdown {
                 grid-template-columns: 1fr;
             }
         }
@@ -246,7 +251,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Student Reality Engine</h1>
+            <h1>Student Reality Check</h1>
             <p>Discover what you're actually asking your students to do</p>
         </div>
         
@@ -265,45 +270,29 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="credits">Credit Points</label>
-                        <select id="credits" required>
-                            <option value="">Select credits</option>
-                            <option value="1">1 credit 🇺🇸🇨🇦</option>
-                            <option value="2">2 credits 🇺🇸🇨🇦</option>
-                            <option value="3">3 credits 🇺🇸🇨🇦</option>
-                            <option value="4">4 credits 🇺🇸🇨🇦</option>
-                            <option value="5">5 credits 🇮🇪</option>
-                            <option value="6">6 credits 🇪🇺</option>
-                            <option value="10">10 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🇮🇪</option>
-                            <option value="12">12 credits 🇪🇺</option>
-                            <option value="15">15 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🇮🇪</option>
-                            <option value="20">20 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🇮🇪</option>
-                            <option value="30">30 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
-                            <option value="40">40 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
-                            <option value="60">60 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿</option>
-                        </select>
-                        <small style="color: #666; font-size: 0.9em; display: block; margin-top: 5px;">
-                            Single module ranges: US/Canada (1-4), EU (6-12), UK/Ireland (10-40)
-                        </small>
+                        <input type="number" id="credits" placeholder="e.g., 20" min="1" max="120" required>
+                        <small>Enter your module's credit value (any international system)</small>
                     </div>
                     
                     <div class="form-group">
                         <label for="creditSystem">Credit System</label>
-                        <select id="creditSystem" required onchange="updateCreditInfo()">
-                            <option value="">Select system</option>
-                            <option value="uk_credits" selected>UK Credits (SCOTCAT/CATS) - 10 hours per credit</option>
+                        <select id="creditSystem" required>
+                            <option value="">Select your system</option>
+                            <option value="uk">UK Credits (SCOTCAT/CATS) - 10 hours per credit</option>
                             <option value="ects">ECTS (Europe/Ireland) - 25 hours per credit</option>
-                            <option value="us_semester">US/Canada - 140 hours per credit</option>
+                            <option value="us">US/Canada - 140 hours per credit</option>
                             <option value="custom">Custom - set your own ratio</option>
                         </select>
                     </div>
                 </div>
                 
-                <div id="customCreditHours" class="form-group" style="display: none;">
+                <div id="customHours" class="form-group" style="display: none;">
                     <label for="hoursPerCredit">Hours per Credit Point</label>
-                    <input type="number" id="hoursPerCredit" placeholder="e.g., 10" min="1" max="100">
-                    <small style="color: #666; font-size: 0.9em;">How many study hours does 1 credit represent at your institution?</small>
+                    <input type="number" id="hoursPerCredit" placeholder="e.g., 10" min="1" max="200">
+                    <small>How many study hours does 1 credit represent at your institution?</small>
                 </div>
-                    
+                
+                <div class="form-row">
                     <div class="form-group">
                         <label for="semesterLength">Semester Length</label>
                         <select id="semesterLength" required>
@@ -321,17 +310,17 @@
                             <option value="16">16 weeks (US semester)</option>
                         </select>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="totalModules">How many modules is the student taking this semester?</label>
-                    <select id="totalModules" required>
-                        <option value="">Select number</option>
-                        <option value="3">3 modules</option>
-                        <option value="4" selected>4 modules (typical)</option>
-                        <option value="5">5 modules</option>
-                        <option value="6">6 modules (overload)</option>
-                    </select>
+                    
+                    <div class="form-group">
+                        <label for="totalModules">Student's Module Load</label>
+                        <select id="totalModules" required>
+                            <option value="">Select number</option>
+                            <option value="3">3 modules</option>
+                            <option value="4" selected>4 modules (typical)</option>
+                            <option value="5">5 modules</option>
+                            <option value="6">6 modules (overload)</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -339,29 +328,29 @@
                     <select id="workloadApproach" required>
                         <option value="realistic" selected>Realistic student workload (35 hours/week total)</option>
                         <option value="maximum">Legal maximum if they were employees (48 hours/week)</option>
-                        <option value="current">Unrealistic expectations (72+ hours/week)</option>
+                        <option value="unrealistic">Unrealistic expectations (72+ hours/week)</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="weeklyReading">Weekly Reading (hours)</label>
+                    <label for="weeklyReading">Average Weekly Reading (hours)</label>
                     <input type="number" id="weeklyReading" placeholder="e.g., 8" min="0" required>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="lectures">Weekly Contact Hours</label>
+                        <label for="lectures">Average Weekly Contact Hours</label>
                         <input type="number" id="lectures" placeholder="e.g., 3" min="0" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="assignments">Assignment Prep (hours/week)</label>
+                        <label for="assignments">Average Weekly Assignment Prep (hours)</label>
                         <input type="number" id="assignments" placeholder="e.g., 5" min="0" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="otherWork">Other Weekly Activities (hours)</label>
+                    <label for="otherWork">Average Weekly Other Activities (hours)</label>
                     <input type="number" id="otherWork" placeholder="e.g., tutorials, group work" min="0" value="0">
                 </div>
                 
@@ -372,9 +361,25 @@
                 <!-- Results will be populated here -->
             </div>
         </div>
+        
+        <footer style="background: #2c3e50; color: white; padding: 20px; text-align: center; font-size: 0.9em;">
+            <p>© Copyright 2025 | <a href="https://www.linkedin.com/in/davidcmillar/" target="_blank" style="color: #74b9ff; text-decoration: none;">David Calum Millar</a> is licensed under CC BY-NC-ND 4.0</p>
+        </footer>
     </div>
 
     <script>
+        // Show/hide custom hours input
+        document.getElementById('creditSystem').addEventListener('change', function() {
+            const customSection = document.getElementById('customHours');
+            if (this.value === 'custom') {
+                customSection.style.display = 'block';
+                document.getElementById('hoursPerCredit').required = true;
+            } else {
+                customSection.style.display = 'none';
+                document.getElementById('hoursPerCredit').required = false;
+            }
+        });
+
         document.getElementById('realityForm').addEventListener('submit', function(e) {
             e.preventDefault();
             calculateReality();
@@ -394,16 +399,16 @@
             const otherWork = parseInt(document.getElementById('otherWork').value) || 0;
 
             // Calculate hours per credit based on system
-            let hoursPerCredit = 10; // Default UK Credits
+            let hoursPerCredit = 10; // Default
             switch(creditSystem) {
-                case 'uk_credits':
+                case 'uk':
                     hoursPerCredit = 10;
                     break;
                 case 'ects':
-                    hoursPerCredit = 25; // Conservative ECTS estimate (covers Ireland 20-25 and Europe 25-30)
+                    hoursPerCredit = 25;
                     break;
-                case 'us_semester':
-                    hoursPerCredit = 140; // 3 credits = ~420 hours (typical course)
+                case 'us':
+                    hoursPerCredit = 140;
                     break;
                 case 'custom':
                     hoursPerCredit = parseInt(document.getElementById('hoursPerCredit').value) || 10;
@@ -418,42 +423,38 @@
             // Calculate based on selected approach
             let availableStudyHours;
             let approachDescription;
-            let legalityWarning = '';
             
             if (workloadApproach === 'realistic') {
-                availableStudyHours = 35; // Reasonable full-time equivalent
+                availableStudyHours = 35;
                 approachDescription = 'Realistic Approach (35 hours total/week)';
             } else if (workloadApproach === 'maximum') {
-                availableStudyHours = 48; // Legal maximum under EU Working Time Directive
+                availableStudyHours = 48;
                 approachDescription = 'Legal Maximum (48 hours total/week)';
             } else {
-                // Current unrealistic expectations based on student having time after life necessities
                 const sleepHours = 49; // 7 hours × 7 days
                 const workHours = 20; // Part-time job
                 const commuteHours = 5;
                 const lifeAdminHours = 14; // Eating, washing, basic life
                 const socialHours = 8; // 2 evenings per week
-                const totalNonStudyHours = sleepHours + workHours + commuteHours + lifeAdminHours + socialHours;
-                availableStudyHours = 168 - totalNonStudyHours; // 72 hours
+                availableStudyHours = 168 - (sleepHours + workHours + commuteHours + lifeAdminHours + socialHours);
                 approachDescription = 'Unrealistic Expectations (72+ hours total/week)';
             }
             
             const hoursPerModule = availableStudyHours / totalModules;
             const totalStudentWorkload = totalWeeklyHours * totalModules;
             
-            // Check if we're asking for illegal workload
+            // Check for legal violation
+            let legalityWarning = '';
             if (totalStudentWorkload > 48) {
                 legalityWarning = `
-                    <div style="background: #d63031; color: white; padding: 15px; margin: 15px 0; border-radius: 8px; border-left: 5px solid #fff;">
+                    <div class="legal-warning">
                         <strong>⚖️ Legal Reality Check:</strong> You're asking students to work ${totalStudentWorkload} hours/week. 
                         This would be <strong>illegal under UK employment law</strong> if they were employees.
                     </div>
                 `;
             }
 
-            // Generate results
-            const resultsDiv = document.getElementById('results');
-            
+            // Determine result styling
             let realityCheckColor = '#00b894'; // Green
             let realityCheckMessage = 'Realistic Expectations';
             
@@ -465,6 +466,8 @@
                 realityCheckMessage = 'Caution: High Expectations';
             }
 
+            // Generate results
+            const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = `
                 <div class="reality-check" style="background-color: ${realityCheckColor}">
                     <h3>${realityCheckMessage}</h3>
@@ -479,7 +482,7 @@
 
                 <div class="student-week">
                     <h3>📊 ${approachDescription}</h3>
-                    ${workloadApproach === 'current' ? `
+                    ${workloadApproach === 'unrealistic' ? `
                         <p><strong>Sleep:</strong> 49 hours (7/night)</p>
                         <p><strong>Part-time work:</strong> 20 hours</p>
                         <p><strong>Commuting:</strong> 5 hours</p>
@@ -517,11 +520,9 @@
                 <div class="tool-selector">
                     <h3>📅 Ready to Plan This Properly?</h3>
                     <p>Use our Weekly Module Planner to redesign your ${moduleName} within realistic time constraints.</p>
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button class="tool-btn" onclick="goToWeeklyPlanner('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})" style="display: inline-block; width: auto; padding: 15px 30px;">
-                            📋 Open Weekly Planner
-                        </button>
-                    </div>
+                    <button class="tool-btn" onclick="goToWeeklyPlanner('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})">
+                        📋 Open Weekly Planner
+                    </button>
                 </div>
 
                 <div class="support-box">
@@ -583,7 +584,6 @@
         }
 
         function goToWeeklyPlanner(moduleName, semesterLength, weeklyHours) {
-            // Create URL with parameters to pass data to Weekly Planner
             const baseURL = 'https://badlyboundbible.github.io/studentrealityengine/weekly_planner';
             const params = new URLSearchParams({
                 module: moduleName,
@@ -594,22 +594,7 @@
             });
             
             const fullURL = `${baseURL}?${params.toString()}`;
-            
-            // Open Weekly Planner in new tab with data
             window.open(fullURL, '_blank');
-        }
-
-        function updateCreditInfo() {
-            const creditSystem = document.getElementById('creditSystem').value;
-            const customSection = document.getElementById('customCreditHours');
-            
-            if (creditSystem === 'custom') {
-                customSection.style.display = 'block';
-                document.getElementById('hoursPerCredit').required = true;
-            } else {
-                customSection.style.display = 'none';
-                document.getElementById('hoursPerCredit').required = false;
-            }
         }
     </script>
 </body>
