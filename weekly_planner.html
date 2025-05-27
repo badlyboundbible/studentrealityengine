@@ -662,6 +662,7 @@
                                         <option value="">Select type</option>
                                         <option value="discussion">Discussion</option>
                                         <option value="seminar">Seminar</option>
+                                        <option value="tutorial">Tutorial</option>
                                         <option value="case-study">Case Study</option>
                                         <option value="analysis">Analysis Exercise</option>
                                     </select>
@@ -736,6 +737,7 @@
                     <option value="">Select type</option>
                     <option value="discussion">Discussion</option>
                     <option value="seminar">Seminar</option>
+                    <option value="tutorial">Tutorial</option>
                     <option value="case-study">Case Study</option>
                     <option value="analysis">Analysis Exercise</option>
                     <option value="comparison">Comparison Activity</option>
@@ -861,29 +863,54 @@
             const understandingPercent = Math.round((understanding / total) * 100);
             const applicationPercent = Math.round((application / total) * 100);
             
+            // Determine balance quality and recommendations
             let balanceMessage = '';
             let balanceColor = '#4caf50'; // Default green
+            let recommendations = [];
             
-            // Determine balance quality
             if (knowledge === 0 && understanding === 0 && application === 0) {
                 balanceMessage = 'No activities added yet';
                 balanceColor = '#666';
-            } else if (knowledge > 0 && understanding > 0 && application > 0) {
-                balanceMessage = '✅ Excellent! You have a good balance across all learning levels';
-                balanceColor = '#4caf50';
-            } else if ((knowledge > 0 && understanding > 0) || (understanding > 0 && application > 0)) {
-                balanceMessage = '⚠️ Good start, but consider adding activities to complete the learning journey';
-                balanceColor = '#ff9800';
             } else {
-                balanceMessage = '⚠️ Learning is too focused on one level. Add variety for better student engagement';
-                balanceColor = '#f44336';
+                // Check for minimum 1 hour in each category
+                const hasMinimumKnowledge = knowledge >= 1;
+                const hasMinimumUnderstanding = understanding >= 1;
+                const hasMinimumApplication = application >= 1;
+                
+                if (hasMinimumKnowledge && hasMinimumUnderstanding && hasMinimumApplication) {
+                    balanceMessage = '✅ Excellent! You have a well-balanced learning experience (1+ hours in each area)';
+                    balanceColor = '#4caf50';
+                } else if (knowledge > 0 && understanding > 0 && application > 0) {
+                    balanceMessage = '⚠️ Good variety, but aim for at least 1 hour in each learning level for better balance';
+                    balanceColor = '#ff9800';
+                } else {
+                    balanceMessage = '⚠️ Learning is unbalanced. Students need activities across all three levels for effective learning';
+                    balanceColor = '#f44336';
+                }
+                
+                // Generate specific recommendations
+                if (knowledge < 1) {
+                    if (knowledge === 0) {
+                        recommendations.push('Add <strong>Knowledge activities</strong> to build foundational understanding');
+                    } else {
+                        recommendations.push('Increase <strong>Knowledge activities</strong> to at least 1 hour');
+                    }
+                }
+                if (understanding < 1) {
+                    if (understanding === 0) {
+                        recommendations.push('Add <strong>Understanding activities</strong> to help students make connections');
+                    } else {
+                        recommendations.push('Increase <strong>Understanding activities</strong> to at least 1 hour');
+                    }
+                }
+                if (application < 1) {
+                    if (application === 0) {
+                        recommendations.push('Add <strong>Application activities</strong> to let students practice and create');
+                    } else {
+                        recommendations.push('Increase <strong>Application activities</strong> to at least 1 hour');
+                    }
+                }
             }
-            
-            // Generate recommendations
-            let recommendations = [];
-            if (knowledge === 0) recommendations.push('Add some <strong>Knowledge activities</strong> to build foundational understanding');
-            if (understanding === 0) recommendations.push('Add some <strong>Understanding activities</strong> to help students make connections');
-            if (application === 0) recommendations.push('Add some <strong>Application activities</strong> to let students practice and create');
             
             balanceContent.innerHTML = `
                 <div style="margin-bottom: 15px;">
