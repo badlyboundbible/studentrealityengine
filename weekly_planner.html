@@ -618,26 +618,89 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Learning Activities</label>
-                        <div class="activity-list" id="activities-${weekNum}">
-                            <div class="activity-item">
-                                <input type="text" placeholder="Activity description" onchange="updateWeekTotal(${weekNum})">
-                                <select onchange="updateWeekTotal(${weekNum})">
-                                    <option value="">Select type</option>
-                                    <option value="lecture">Lecture</option>
-                                    <option value="seminar">Seminar</option>
-                                    <option value="workshop">Workshop</option>
-                                    <option value="reading">Reading</option>
-                                    <option value="assignment">Assignment Work</option>
-                                    <option value="research">Independent Research</option>
-                                    <option value="discussion">Discussion</option>
-                                    <option value="practical">Practical Exercise</option>
-                                </select>
-                                <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                        <label for="outcome-${weekNum}">Learning Outcome for this Week</label>
+                        <textarea id="outcome-${weekNum}" placeholder="By the end of this week, students will be able to..." style="min-height: 60px;" onchange="calculateSummary()"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prior-${weekNum}">Starting Knowledge (What do students already know?)</label>
+                        <textarea id="prior-${weekNum}" placeholder="Students should already understand... / have covered... / be familiar with..." style="min-height: 50px;"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Learning Activities (Aim for balance across Knowledge, Understanding & Application)</label>
+                        
+                        <!-- Knowledge Activities -->
+                        <div style="background: #e8f4fd; border-left: 4px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #1976d2; margin-bottom: 10px;">🧠 Knowledge Activities (Remember & Understand)</h4>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students recall facts, explain concepts, and build foundational understanding</p>
+                            <div class="activity-list knowledge-activities" id="knowledge-${weekNum}">
+                                <div class="activity-item">
+                                    <input type="text" placeholder="e.g., Lecture on key concepts" onchange="updateWeekTotal(${weekNum})">
+                                    <select onchange="updateWeekTotal(${weekNum})">
+                                        <option value="">Select type</option>
+                                        <option value="lecture">Lecture</option>
+                                        <option value="reading">Essential Reading</option>
+                                        <option value="video">Video Content</option>
+                                        <option value="discussion">Q&A Discussion</option>
+                                    </select>
+                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                </div>
+                            </div>
+                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'knowledge')" style="background: #2196f3;">+ Add Knowledge Activity</button>
+                        </div>
+                        
+                        <!-- Understanding Activities -->
+                        <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #7b1fa2; margin-bottom: 10px;">💡 Understanding Activities (Comprehension & Analysis)</h4>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students explain, interpret, and make connections between ideas</p>
+                            <div class="activity-list understanding-activities" id="understanding-${weekNum}">
+                                <div class="activity-item">
+                                    <input type="text" placeholder="e.g., Group discussion on implications" onchange="updateWeekTotal(${weekNum})">
+                                    <select onchange="updateWeekTotal(${weekNum})">
+                                        <option value="">Select type</option>
+                                        <option value="discussion">Discussion</option>
+                                        <option value="seminar">Seminar</option>
+                                        <option value="case-study">Case Study</option>
+                                        <option value="analysis">Analysis Exercise</option>
+                                    </select>
+                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                </div>
+                            </div>
+                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'understanding')" style="background: #9c27b0;">+ Add Understanding Activity</button>
+                        </div>
+                        
+                        <!-- Application Activities -->
+                        <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #388e3c; margin-bottom: 10px;">🚀 Application Activities (Apply & Create)</h4>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students use knowledge in new situations and create something new</p>
+                            <div class="activity-list application-activities" id="application-${weekNum}">
+                                <div class="activity-item">
+                                    <input type="text" placeholder="e.g., Practical exercise or project work" onchange="updateWeekTotal(${weekNum})">
+                                    <select onchange="updateWeekTotal(${weekNum})">
+                                        <option value="">Select type</option>
+                                        <option value="workshop">Workshop</option>
+                                        <option value="practical">Practical Exercise</option>
+                                        <option value="project">Project Work</option>
+                                        <option value="assignment">Assignment Prep</option>
+                                        <option value="simulation">Simulation</option>
+                                    </select>
+                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                </div>
+                            </div>
+                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'application')" style="background: #4caf50;">+ Add Application Activity</button>
+                        </div>
+                        
+                        <!-- Learning Balance Indicator -->
+                        <div id="balance-indicator-${weekNum}" style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #f57c00; margin-bottom: 10px;">⚖️ Learning Balance Check</h4>
+                            <div id="balance-content-${weekNum}">
+                                <p style="color: #666;">Add activities above to see your learning balance analysis</p>
                             </div>
                         </div>
-                        <button class="add-activity-btn" onclick="addActivity(${weekNum})">+ Add Activity</button>
                     </div>
                     
                     <div class="efficiency-tip" style="display: none;" id="tip-${weekNum}">
@@ -651,32 +714,66 @@
         }
 
         function addActivity(weekNum) {
-            const activitiesList = document.getElementById(`activities-${weekNum}`);
+            // Legacy function - redirect to addActivityToSection
+            addActivityToSection(weekNum, 'knowledge');
+        }
+
+        function addActivityToSection(weekNum, section) {
+            const sectionContainer = document.getElementById(`${section}-${weekNum}`);
+            
+            let options = '';
+            if (section === 'knowledge') {
+                options = `
+                    <option value="">Select type</option>
+                    <option value="lecture">Lecture</option>
+                    <option value="reading">Essential Reading</option>
+                    <option value="video">Video Content</option>
+                    <option value="discussion">Q&A Discussion</option>
+                    <option value="explanation">Explanation/Demo</option>
+                `;
+            } else if (section === 'understanding') {
+                options = `
+                    <option value="">Select type</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="seminar">Seminar</option>
+                    <option value="case-study">Case Study</option>
+                    <option value="analysis">Analysis Exercise</option>
+                    <option value="comparison">Comparison Activity</option>
+                `;
+            } else if (section === 'application') {
+                options = `
+                    <option value="">Select type</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="practical">Practical Exercise</option>
+                    <option value="project">Project Work</option>
+                    <option value="assignment">Assignment Prep</option>
+                    <option value="simulation">Simulation</option>
+                    <option value="problem-solving">Problem Solving</option>
+                `;
+            }
             
             const activityHTML = `
                 <div class="activity-item">
                     <input type="text" placeholder="Activity description" onchange="updateWeekTotal(${weekNum})">
                     <select onchange="updateWeekTotal(${weekNum})">
-                        <option value="">Select type</option>
-                        <option value="lecture">Lecture</option>
-                        <option value="seminar">Seminar</option>
-                        <option value="workshop">Workshop</option>
-                        <option value="reading">Reading</option>
-                        <option value="assignment">Assignment Work</option>
-                        <option value="research">Independent Research</option>
-                        <option value="discussion">Discussion</option>
-                        <option value="practical">Practical Exercise</option>
+                        ${options}
                     </select>
                     <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
                     <button class="remove-btn" onclick="removeActivity(this)">×</button>
                 </div>
             `;
             
-            activitiesList.insertAdjacentHTML('beforeend', activityHTML);
+            sectionContainer.insertAdjacentHTML('beforeend', activityHTML);
             
-            // Show remove buttons now that we have multiple activities
-            const removeButtons = activitiesList.querySelectorAll('.remove-btn');
-            removeButtons.forEach(btn => btn.style.display = 'block');
+            // Show remove buttons for all activities in this section
+            const activities = sectionContainer.querySelectorAll('.activity-item');
+            if (activities.length > 1) {
+                activities.forEach(activity => {
+                    activity.querySelector('.remove-btn').style.display = 'block';
+                });
+            }
+            
+            updateWeekTotal(weekNum);
         }
 
         function removeActivity(button) {
@@ -700,8 +797,32 @@
             const hourInputs = weekContainer.querySelectorAll('input[type="number"]');
             let total = 0;
             
-            hourInputs.forEach(input => {
+            // Calculate totals by section
+            let knowledgeHours = 0;
+            let understandingHours = 0;
+            let applicationHours = 0;
+            
+            // Knowledge activities
+            const knowledgeInputs = weekContainer.querySelectorAll('#knowledge-' + weekNum + ' input[type="number"]');
+            knowledgeInputs.forEach(input => {
                 const value = parseFloat(input.value) || 0;
+                knowledgeHours += value;
+                total += value;
+            });
+            
+            // Understanding activities
+            const understandingInputs = weekContainer.querySelectorAll('#understanding-' + weekNum + ' input[type="number"]');
+            understandingInputs.forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                understandingHours += value;
+                total += value;
+            });
+            
+            // Application activities
+            const applicationInputs = weekContainer.querySelectorAll('#application-' + weekNum + ' input[type="number"]');
+            applicationInputs.forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                applicationHours += value;
                 total += value;
             });
             
@@ -722,7 +843,83 @@
                 hideEfficiencyTip(weekNum);
             }
             
+            // Update learning balance indicator
+            updateLearningBalance(weekNum, knowledgeHours, understandingHours, applicationHours, total);
+            
             calculateSummary();
+        }
+
+        function updateLearningBalance(weekNum, knowledge, understanding, application, total) {
+            const balanceContent = document.getElementById(`balance-content-${weekNum}`);
+            
+            if (total === 0) {
+                balanceContent.innerHTML = '<p style="color: #666;">Add activities above to see your learning balance analysis</p>';
+                return;
+            }
+            
+            const knowledgePercent = Math.round((knowledge / total) * 100);
+            const understandingPercent = Math.round((understanding / total) * 100);
+            const applicationPercent = Math.round((application / total) * 100);
+            
+            let balanceMessage = '';
+            let balanceColor = '#4caf50'; // Default green
+            
+            // Determine balance quality
+            if (knowledge === 0 && understanding === 0 && application === 0) {
+                balanceMessage = 'No activities added yet';
+                balanceColor = '#666';
+            } else if (knowledge > 0 && understanding > 0 && application > 0) {
+                balanceMessage = '✅ Excellent! You have a good balance across all learning levels';
+                balanceColor = '#4caf50';
+            } else if ((knowledge > 0 && understanding > 0) || (understanding > 0 && application > 0)) {
+                balanceMessage = '⚠️ Good start, but consider adding activities to complete the learning journey';
+                balanceColor = '#ff9800';
+            } else {
+                balanceMessage = '⚠️ Learning is too focused on one level. Add variety for better student engagement';
+                balanceColor = '#f44336';
+            }
+            
+            // Generate recommendations
+            let recommendations = [];
+            if (knowledge === 0) recommendations.push('Add some <strong>Knowledge activities</strong> to build foundational understanding');
+            if (understanding === 0) recommendations.push('Add some <strong>Understanding activities</strong> to help students make connections');
+            if (application === 0) recommendations.push('Add some <strong>Application activities</strong> to let students practice and create');
+            
+            balanceContent.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-size: 0.9em; color: #1976d2;">🧠 Knowledge</span>
+                                <span style="font-size: 0.9em; font-weight: bold;">${knowledge}h (${knowledgePercent}%)</span>
+                            </div>
+                            <div style="background: #e3f2fd; height: 8px; border-radius: 4px;">
+                                <div style="background: #2196f3; height: 100%; width: ${knowledgePercent}%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-size: 0.9em; color: #7b1fa2;">💡 Understanding</span>
+                                <span style="font-size: 0.9em; font-weight: bold;">${understanding}h (${understandingPercent}%)</span>
+                            </div>
+                            <div style="background: #f3e5f5; height: 8px; border-radius: 4px;">
+                                <div style="background: #9c27b0; height: 100%; width: ${understandingPercent}%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-size: 0.9em; color: #388e3c;">🚀 Application</span>
+                                <span style="font-size: 0.9em; font-weight: bold;">${application}h (${applicationPercent}%)</span>
+                            </div>
+                            <div style="background: #e8f5e8; height: 8px; border-radius: 4px;">
+                                <div style="background: #4caf50; height: 100%; width: ${applicationPercent}%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="color: ${balanceColor}; font-weight: 500; margin-bottom: 10px;">${balanceMessage}</p>
+                ${recommendations.length > 0 ? `<div style="font-size: 0.9em; color: #666;"><strong>Suggestions:</strong><br>• ${recommendations.join('<br>• ')}</div>` : ''}
+            `;
         }
 
         function showEfficiencyTip(weekNum, message) {
