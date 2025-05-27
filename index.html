@@ -278,9 +278,17 @@
                         <label for="semesterLength">Semester Length</label>
                         <select id="semesterLength" required>
                             <option value="">Select weeks</option>
-                            <option value="10">10 weeks</option>
+                            <option value="6">6 weeks (intensive)</option>
+                            <option value="7">7 weeks</option>
+                            <option value="8">8 weeks (summer)</option>
+                            <option value="9">9 weeks</option>
+                            <option value="10">10 weeks (quarter)</option>
                             <option value="11">11 weeks</option>
-                            <option value="12">12 weeks</option>
+                            <option value="12" selected>12 weeks (UK standard)</option>
+                            <option value="13">13 weeks</option>
+                            <option value="14">14 weeks</option>
+                            <option value="15">15 weeks (US semester)</option>
+                            <option value="16">16 weeks (US semester)</option>
                         </select>
                     </div>
                 </div>
@@ -301,7 +309,7 @@
                     <select id="workloadApproach" required>
                         <option value="realistic" selected>Realistic student workload (35 hours/week total)</option>
                         <option value="maximum">Legal maximum if they were employees (48 hours/week)</option>
-                        <option value="current">Current unrealistic expectations (72+ hours/week)</option>
+                        <option value="current">Unrealistic expectations (72+ hours/week)</option>
                     </select>
                 </div>
                 
@@ -379,7 +387,7 @@
                 const socialHours = 8; // 2 evenings per week
                 const totalNonStudyHours = sleepHours + workHours + commuteHours + lifeAdminHours + socialHours;
                 availableStudyHours = 168 - totalNonStudyHours; // 72 hours
-                approachDescription = 'Current Unrealistic Expectations (72+ hours total/week)';
+                approachDescription = 'Unrealistic Expectations (72+ hours total/week)';
             }
             
             const hoursPerModule = availableStudyHours / totalModules;
@@ -533,7 +541,20 @@
         }
 
         function goToWeeklyPlanner(moduleName, semesterLength, weeklyHours) {
-            alert(`Weekly Planner coming soon!\n\nThis will help you plan your ${moduleName} across ${semesterLength} weeks with ${weeklyHours} hours per week target.`);
+            // Create URL with parameters to pass data to Weekly Planner
+            const baseURL = 'weekly-planner.html'; // In deployment, this would be the full URL
+            const params = new URLSearchParams({
+                module: moduleName,
+                weeks: semesterLength,
+                hours: weeklyHours.toString(),
+                credits: document.getElementById('credits').value,
+                approach: document.getElementById('workloadApproach').value
+            });
+            
+            const fullURL = `${baseURL}?${params.toString()}`;
+            
+            // Open Weekly Planner in new tab with data
+            window.open(fullURL, '_blank');
         }
 
         function goToLearningDesign(moduleName, semesterLength, weeklyHours) {
