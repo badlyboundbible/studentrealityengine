@@ -481,15 +481,6 @@
                         Start with Weekly Planner for quick fixes, or jump to Learning Design for comprehensive redesign
                     </p>
                 </div>
-
-                <div class="support-box">
-                    <h3>🤝 Need Help Strategising a Solution?</h3>
-                    <p>If you're looking at these results thinking "Oh dear, what have I done?", don't panic!</p>
-                    <p><strong>Contact your school or institution's Learning Designer</strong> for support with redesigning your module to be more effective, engaging, and realistic.</p>
-                    <p style="font-size: 0.9em; margin-top: 15px; opacity: 0.9;">
-                        Remember: efficient learning beats exhausted students every time.
-                    </p>
-                </div>
             `;
             
             resultsDiv.style.display = 'block';
@@ -542,7 +533,7 @@
 
         function goToWeeklyPlanner(moduleName, semesterLength, weeklyHours) {
             // Create URL with parameters to pass data to Weekly Planner
-            const baseURL = 'weekly-planner.html'; // In deployment, this would be the full URL
+            const baseURL = 'https://badlyboundbible.github.io/studentrealityengine/weekly_planner';
             const params = new URLSearchParams({
                 module: moduleName,
                 weeks: semesterLength,
