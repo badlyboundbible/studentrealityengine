@@ -468,17 +468,20 @@
 
                 <div class="tool-selector">
                     <h3>📅 Ready to Plan This Properly?</h3>
-                    <p>Use our integrated planning tools to redesign your ${moduleName} within realistic time constraints.</p>
-                    <div class="tool-buttons">
-                        <button class="tool-btn" onclick="goToWeeklyPlanner('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})">
-                            📋 Weekly Planner
-                        </button>
-                        <button class="tool-btn secondary" onclick="goToLearningDesign('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})">
-                            🎯 Learning Design
+                    <p>Use our Weekly Module Planner to redesign your ${moduleName} within realistic time constraints.</p>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="tool-btn" onclick="goToWeeklyPlanner('${moduleName}', ${semesterLength}, ${hoursPerModule.toFixed(1)})" style="display: inline-block; width: auto; padding: 15px 30px;">
+                            📋 Open Weekly Planner
                         </button>
                     </div>
-                    <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.9;">
-                        Start with Weekly Planner for quick fixes, or jump to Learning Design for comprehensive redesign
+                </div>
+
+                <div class="support-box">
+                    <h3>🎯 Need Expert Learning Design Support?</h3>
+                    <p>The Weekly Planner will help you manage time better, but for truly transformative learning experiences:</p>
+                    <p><strong>Contact your institution's Learning Designer</strong> for expert support with learning outcomes, activity design, and student engagement strategies.</p>
+                    <p style="font-size: 0.9em; margin-top: 15px; opacity: 0.9;">
+                        Remember: good time management + expert learning design = exceptional education
                     </p>
                 </div>
             `;
@@ -549,7 +552,7 @@
         }
 
         function goToLearningDesign(moduleName, semesterLength, weeklyHours) {
-            alert(`Learning Design Tool coming soon!\n\nThis will help you design proper learning outcomes and activities for ${moduleName} using backwards design principles.`);
+            // This function is no longer needed
         }
     </script>
 </body>
