@@ -505,63 +505,66 @@
                 });
             });
             
-            // Add new week
-            addWeek();
-            const newWeekNum = weekCount;
+            // Find the next week number
+            const nextWeekNum = weekNum + 1;
+            const nextWeek = document.getElementById(`week-${nextWeekNum}`);
             
-            // Copy topic (with "Copy of" prefix)
-            document.getElementById(`topic-${newWeekNum}`).value = topic ? `Copy of ${topic}` : '';
-            
-            // Copy activities
-            const newWeekActivities = document.getElementById(`activities-${newWeekNum}`);
-            // Remove the default empty activity
-            newWeekActivities.innerHTML = '';
-            
-            activities.forEach((activity, index) => {
-                if (index === 0) {
-                    // Add first activity
-                    const activityHTML = `
-                        <div class="activity-item">
-                            <input type="text" placeholder="Activity description" value="${activity.description}" onchange="updateWeekTotal(${newWeekNum})">
-                            <select onchange="updateWeekTotal(${newWeekNum})">
-                                <option value="">Select type</option>
-                                <option value="lecture" ${activity.type === 'lecture' ? 'selected' : ''}>Lecture</option>
-                                <option value="seminar" ${activity.type === 'seminar' ? 'selected' : ''}>Seminar</option>
-                                <option value="workshop" ${activity.type === 'workshop' ? 'selected' : ''}>Workshop</option>
-                                <option value="reading" ${activity.type === 'reading' ? 'selected' : ''}>Reading</option>
-                                <option value="assignment" ${activity.type === 'assignment' ? 'selected' : ''}>Assignment Work</option>
-                                <option value="research" ${activity.type === 'research' ? 'selected' : ''}>Independent Research</option>
-                                <option value="discussion" ${activity.type === 'discussion' ? 'selected' : ''}>Discussion</option>
-                                <option value="practical" ${activity.type === 'practical' ? 'selected' : ''}>Practical Exercise</option>
-                            </select>
-                            <input type="number" placeholder="Hours" min="0" step="0.5" value="${activity.hours}" onchange="updateWeekTotal(${newWeekNum})" style="max-width: 100px;">
-                            <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
-                        </div>
-                    `;
-                    newWeekActivities.insertAdjacentHTML('beforeend', activityHTML);
-                } else {
-                    // Add additional activities
-                    addActivity(newWeekNum);
-                    const lastActivity = newWeekActivities.lastElementChild;
-                    const inputs = lastActivity.querySelectorAll('input, select');
-                    inputs[0].value = activity.description;
-                    inputs[1].value = activity.type;
-                    inputs[2].value = activity.hours;
+            if (!nextWeek) {
+                // If next week doesn't exist, create it
+                addWeek();
+                const newWeekNum = weekCount;
+                populateWeekContent(newWeekNum, topic, activities);
+            } else {
+                // If next week exists, ask if they want to overwrite
+                if (confirm(`This will overwrite the content of Week ${nextWeekNum}. Continue?`)) {
+                    populateWeekContent(nextWeekNum, topic, activities);
                 }
+            }
+        }
+
+        function populateWeekContent(weekNum, topic, activities) {
+            // Copy topic (with "Copy of" prefix if it has content)
+            const topicInput = document.getElementById(`topic-${weekNum}`);
+            topicInput.value = topic ? `Copy of ${topic}` : '';
+            
+            // Clear existing activities
+            const weekActivities = document.getElementById(`activities-${weekNum}`);
+            weekActivities.innerHTML = '';
+            
+            // Populate with copied activities
+            activities.forEach((activity, index) => {
+                const activityHTML = `
+                    <div class="activity-item">
+                        <input type="text" placeholder="Activity description" value="${activity.description}" onchange="updateWeekTotal(${weekNum})">
+                        <select onchange="updateWeekTotal(${weekNum})">
+                            <option value="">Select type</option>
+                            <option value="lecture" ${activity.type === 'lecture' ? 'selected' : ''}>Lecture</option>
+                            <option value="seminar" ${activity.type === 'seminar' ? 'selected' : ''}>Seminar</option>
+                            <option value="workshop" ${activity.type === 'workshop' ? 'selected' : ''}>Workshop</option>
+                            <option value="reading" ${activity.type === 'reading' ? 'selected' : ''}>Reading</option>
+                            <option value="assignment" ${activity.type === 'assignment' ? 'selected' : ''}>Assignment Work</option>
+                            <option value="research" ${activity.type === 'research' ? 'selected' : ''}>Independent Research</option>
+                            <option value="discussion" ${activity.type === 'discussion' ? 'selected' : ''}>Discussion</option>
+                            <option value="practical" ${activity.type === 'practical' ? 'selected' : ''}>Practical Exercise</option>
+                        </select>
+                        <input type="number" placeholder="Hours" min="0" step="0.5" value="${activity.hours}" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                        <button class="remove-btn" onclick="removeActivity(this)" ${activities.length === 1 ? 'style="display: none;"' : ''}>×</button>
+                    </div>
+                `;
+                weekActivities.insertAdjacentHTML('beforeend', activityHTML);
             });
             
             // Show remove buttons if multiple activities
-            const allActivities = newWeekActivities.querySelectorAll('.activity-item');
-            if (allActivities.length > 1) {
-                allActivities.forEach(activity => {
-                    activity.querySelector('.remove-btn').style.display = 'block';
+            if (activities.length > 1) {
+                weekActivities.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.style.display = 'block';
                 });
             }
             
-            updateWeekTotal(newWeekNum);
+            updateWeekTotal(weekNum);
             
-            // Scroll to new week
-            document.getElementById(`week-${newWeekNum}`).scrollIntoView({ behavior: 'smooth' });
+            // Scroll to the populated week
+            document.getElementById(`week-${weekNum}`).scrollIntoView({ behavior: 'smooth' });
         }
 
         function removeWeek(weekNum) {
