@@ -104,18 +104,26 @@
         }
         
         .week-content {
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
             overflow: hidden;
         }
         
         .week-content.collapsed {
             max-height: 0;
             opacity: 0;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .week-content:not(.collapsed) {
+            max-height: none;
+            opacity: 1;
         }
         
         .collapse-icon {
             font-size: 1.2em;
             transition: transform 0.3s ease;
+            margin-left: 10px;
         }
         
         .collapse-icon.rotated {
@@ -522,6 +530,19 @@
             }
         }
 
+        function toggleWeek(weekNum) {
+            const weekContent = document.getElementById(`content-${weekNum}`);
+            const collapseIcon = document.getElementById(`collapse-${weekNum}`);
+            
+            if (weekContent.classList.contains('collapsed')) {
+                weekContent.classList.remove('collapsed');
+                collapseIcon.classList.remove('rotated');
+            } else {
+                weekContent.classList.add('collapsed');
+                collapseIcon.classList.add('rotated');
+            }
+        }
+
         function duplicateWeek(weekNum) {
             const sourceWeek = document.getElementById(`week-${weekNum}`);
             const topic = document.getElementById(`topic-${weekNum}`).value;
@@ -555,6 +576,12 @@
         }
 
         function populateWeekContent(weekNum, topic, activities) {
+            // Expand the target week first
+            const weekContent = document.getElementById(`content-${weekNum}`);
+            const collapseIcon = document.getElementById(`collapse-${weekNum}`);
+            weekContent.classList.remove('collapsed');
+            collapseIcon.classList.remove('rotated');
+            
             // Copy topic (with "Copy of" prefix if it has content)
             const topicInput = document.getElementById(`topic-${weekNum}`);
             topicInput.value = topic ? `Copy of ${topic}` : '';
@@ -621,10 +648,11 @@
             weekCount++;
             const weekNum = weekNumber || weekCount;
             const weekDate = getWeekDate(weekNum);
+            const isFirstWeek = weekNum === 1;
             
             const weekHTML = `
                 <div class="week-planner" id="week-${weekNum}">
-                    <div class="week-header">
+                    <div class="week-header" onclick="toggleWeek(${weekNum})">
                         <div>
                             <div class="week-number">Week ${weekNum}</div>
                             <div style="font-size: 0.9em; color: #7f8c8d; margin-top: 5px;">
@@ -634,110 +662,91 @@
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <div class="week-total" id="total-${weekNum}">0 hours</div>
                             <div style="display: flex; gap: 5px;">
-                                <button onclick="duplicateWeek(${weekNum})" style="background: #00b894; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Duplicate this week">
+                                <button onclick="event.stopPropagation(); duplicateWeek(${weekNum})" style="background: #00b894; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Duplicate this week">
                                     📋
                                 </button>
-                                <button onclick="removeWeek(${weekNum})" style="background: #ff6b6b; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Remove this week">
+                                <button onclick="event.stopPropagation(); removeWeek(${weekNum})" style="background: #ff6b6b; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Remove this week">
                                     🗑️
                                 </button>
+                                <span class="collapse-icon ${!isFirstWeek ? 'rotated' : ''}" id="collapse-${weekNum}">▼</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="topic-${weekNum}">Week Topic/Theme</label>
-                        <input type="text" id="topic-${weekNum}" placeholder="e.g., Introduction to Strategic Planning" onchange="calculateSummary()">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="outcome-${weekNum}">Learning Outcome for this Week</label>
-                        <textarea id="outcome-${weekNum}" placeholder="By the end of this week, students will be able to..." style="min-height: 60px;" onchange="calculateSummary()"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="prior-${weekNum}">Starting Knowledge (What do students already know?)</label>
-                        <textarea id="prior-${weekNum}" placeholder="Students should already understand... / have covered... / be familiar with..." style="min-height: 50px;"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Learning Activities (Aim for balance across Knowledge, Understanding & Application)</label>
+                    <div class="week-content ${!isFirstWeek ? 'collapsed' : ''}" id="content-${weekNum}">
+                        <div class="form-group">
+                            <label for="topic-${weekNum}">Week Topic/Theme</label>
+                            <input type="text" id="topic-${weekNum}" placeholder="e.g., Introduction to Strategic Planning" onchange="calculateSummary()">
+                        </div>
                         
-                        <!-- Knowledge Activities -->
-                        <div style="background: #e8f4fd; border-left: 4px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #1976d2; margin-bottom: 10px;">🧠 Knowledge Activities (Remember & Understand)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students recall facts, explain concepts, and build foundational understanding</p>
-                            <div class="activity-list knowledge-activities" id="knowledge-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Lecture on key concepts" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="lecture">Lecture</option>
-                                        <option value="reading">Essential Reading</option>
-                                        <option value="video">Video Content</option>
-                                        <option value="discussion">Q&A Discussion</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                        <div class="form-group">
+                            <label for="outcome-${weekNum}">Learning Outcome for this Week</label>
+                            <textarea id="outcome-${weekNum}" placeholder="By the end of this week, students will be able to..." style="min-height: 60px;" onchange="calculateSummary()"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="prior-${weekNum}">Starting Knowledge (What do students already know?)</label>
+                            <textarea id="prior-${weekNum}" placeholder="Students should already understand... / have covered... / be familiar with..." style="min-height: 50px;"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Learning Activities (Aim for balance across Knowledge, Understanding & Application)</label>
+                            
+                            <!-- Knowledge Activities -->
+                            <div style="background: #e8f4fd; border-left: 4px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #1976d2; margin-bottom: 10px;">🧠 Knowledge Activities (Remember & Understand)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students recall facts, explain concepts, and build foundational understanding</p>
+                                <div class="activity-list knowledge-activities" id="knowledge-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Lecture on key concepts" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="lecture">Lecture</option>
+                                            <option value="reading">Essential Reading</option>
+                                            <option value="video">Video Content</option>
+                                            <option value="discussion">Q&A Discussion</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'understanding')" style="background: #9c27b0;">+ Add Understanding Activity</button>
+                            </div>
+                            
+                            <!-- Application Activities -->
+                            <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #388e3c; margin-bottom: 10px;">🚀 Application Activities (Apply & Create)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students use knowledge in new situations and create something new</p>
+                                <div class="activity-list application-activities" id="application-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Practical exercise or project work" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="workshop">Workshop</option>
+                                            <option value="practical">Practical Exercise</option>
+                                            <option value="project">Project Work</option>
+                                            <option value="assignment">Assignment Prep</option>
+                                            <option value="simulation">Simulation</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'application')" style="background: #4caf50;">+ Add Application Activity</button>
+                            </div>
+                            
+                            <!-- Learning Balance Indicator -->
+                            <div id="balance-indicator-${weekNum}" style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #f57c00; margin-bottom: 10px;">⚖️ Learning Balance Check</h4>
+                                <div id="balance-content-${weekNum}">
+                                    <p style="color: #666;">Add activities above to see your learning balance analysis</p>
                                 </div>
                             </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'knowledge')" style="background: #2196f3;">+ Add Knowledge Activity</button>
                         </div>
                         
-                        <!-- Understanding Activities -->
-                        <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #7b1fa2; margin-bottom: 10px;">💡 Understanding Activities (Comprehension & Analysis)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students explain, interpret, and make connections between ideas</p>
-                            <div class="activity-list understanding-activities" id="understanding-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Group discussion on implications" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="discussion">Discussion</option>
-                                        <option value="seminar">Seminar</option>
-                                        <option value="tutorial">Tutorial</option>
-                                        <option value="case-study">Case Study</option>
-                                        <option value="analysis">Analysis Exercise</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
-                                </div>
-                            </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'understanding')" style="background: #9c27b0;">+ Add Understanding Activity</button>
+                        <div class="efficiency-tip" style="display: none;" id="tip-${weekNum}">
+                            <strong>💡 Efficiency Tip:</strong> <span></span>
                         </div>
-                        
-                        <!-- Application Activities -->
-                        <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #388e3c; margin-bottom: 10px;">🚀 Application Activities (Apply & Create)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students use knowledge in new situations and create something new</p>
-                            <div class="activity-list application-activities" id="application-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Practical exercise or project work" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="workshop">Workshop</option>
-                                        <option value="practical">Practical Exercise</option>
-                                        <option value="project">Project Work</option>
-                                        <option value="assignment">Assignment Prep</option>
-                                        <option value="simulation">Simulation</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
-                                </div>
-                            </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'application')" style="background: #4caf50;">+ Add Application Activity</button>
-                        </div>
-                        
-                        <!-- Learning Balance Indicator -->
-                        <div id="balance-indicator-${weekNum}" style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #f57c00; margin-bottom: 10px;">⚖️ Learning Balance Check</h4>
-                            <div id="balance-content-${weekNum}">
-                                <p style="color: #666;">Add activities above to see your learning balance analysis</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="efficiency-tip" style="display: none;" id="tip-${weekNum}">
-                        <strong>💡 Efficiency Tip:</strong> <span></span>
                     </div>
                 </div>
             `;
@@ -1215,4 +1224,26 @@
         }
     </script>
 </body>
-</html>
+</html>ToSection(${weekNum}, 'knowledge')" style="background: #2196f3;">+ Add Knowledge Activity</button>
+                            </div>
+                            
+                            <!-- Understanding Activities -->
+                            <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #7b1fa2; margin-bottom: 10px;">💡 Understanding Activities (Comprehension & Analysis)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students explain, interpret, and make connections between ideas</p>
+                                <div class="activity-list understanding-activities" id="understanding-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Group discussion on implications" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="discussion">Discussion</option>
+                                            <option value="seminar">Seminar</option>
+                                            <option value="tutorial">Tutorial</option>
+                                            <option value="case-study">Case Study</option>
+                                            <option value="analysis">Analysis Exercise</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivity
