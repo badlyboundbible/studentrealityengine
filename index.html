@@ -267,12 +267,42 @@
                         <label for="credits">Credit Points</label>
                         <select id="credits" required>
                             <option value="">Select credits</option>
-                            <option value="10">10 credits</option>
-                            <option value="15">15 credits</option>
-                            <option value="20">20 credits</option>
-                            <option value="30">30 credits</option>
+                            <option value="1">1 credit 🇺🇸🇨🇦</option>
+                            <option value="2">2 credits 🇺🇸🇨🇦</option>
+                            <option value="3">3 credits 🇺🇸🇨🇦</option>
+                            <option value="4">4 credits 🇺🇸🇨🇦</option>
+                            <option value="5">5 credits 🇮🇪</option>
+                            <option value="6">6 credits 🇪🇺</option>
+                            <option value="10">10 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🇮🇪</option>
+                            <option value="12">12 credits 🇪🇺</option>
+                            <option value="15">15 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🇮🇪</option>
+                            <option value="20">20 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🇮🇪</option>
+                            <option value="30">30 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
+                            <option value="40">40 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
+                            <option value="60">60 credits 🏴󠁧󠁢󠁳󠁣󠁴󠁿</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.9em; display: block; margin-top: 5px;">
+                            Single module ranges: US/Canada (1-4), EU (6-12), UK/Ireland (10-40)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="creditSystem">Credit System</label>
+                        <select id="creditSystem" required onchange="updateCreditInfo()">
+                            <option value="">Select system</option>
+                            <option value="uk_credits" selected>UK Credits (SCOTCAT/CATS) - 10 hours per credit</option>
+                            <option value="ects">ECTS (Europe/Ireland) - 25 hours per credit</option>
+                            <option value="us_semester">US/Canada - 140 hours per credit</option>
+                            <option value="custom">Custom - set your own ratio</option>
                         </select>
                     </div>
+                </div>
+                
+                <div id="customCreditHours" class="form-group" style="display: none;">
+                    <label for="hoursPerCredit">Hours per Credit Point</label>
+                    <input type="number" id="hoursPerCredit" placeholder="e.g., 10" min="1" max="100">
+                    <small style="color: #666; font-size: 0.9em;">How many study hours does 1 credit represent at your institution?</small>
+                </div>
                     
                     <div class="form-group">
                         <label for="semesterLength">Semester Length</label>
@@ -354,6 +384,7 @@
             // Get form values
             const moduleName = document.getElementById('moduleName').value;
             const credits = parseInt(document.getElementById('credits').value);
+            const creditSystem = document.getElementById('creditSystem').value;
             const semesterLength = parseInt(document.getElementById('semesterLength').value);
             const totalModules = parseInt(document.getElementById('totalModules').value);
             const workloadApproach = document.getElementById('workloadApproach').value;
@@ -362,9 +393,26 @@
             const assignments = parseInt(document.getElementById('assignments').value) || 0;
             const otherWork = parseInt(document.getElementById('otherWork').value) || 0;
 
+            // Calculate hours per credit based on system
+            let hoursPerCredit = 10; // Default UK Credits
+            switch(creditSystem) {
+                case 'uk_credits':
+                    hoursPerCredit = 10;
+                    break;
+                case 'ects':
+                    hoursPerCredit = 25; // Conservative ECTS estimate (covers Ireland 20-25 and Europe 25-30)
+                    break;
+                case 'us_semester':
+                    hoursPerCredit = 140; // 3 credits = ~420 hours (typical course)
+                    break;
+                case 'custom':
+                    hoursPerCredit = parseInt(document.getElementById('hoursPerCredit').value) || 10;
+                    break;
+            }
+
             // Calculate expectations
             const totalWeeklyHours = weeklyReading + lectures + assignments + otherWork;
-            const totalSemesterHours = credits * 10; // 10 hours per credit
+            const totalSemesterHours = credits * hoursPerCredit;
             const expectedWeeklyHours = totalSemesterHours / semesterLength;
 
             // Calculate based on selected approach
@@ -457,7 +505,7 @@
                     
                     <div class="breakdown-item">
                         <h4>Reality Check</h4>
-                        <p><strong>Expected (credits):</strong> ${expectedWeeklyHours.toFixed(1)} hours</p>
+                        <p><strong>Expected (${creditSystem.toUpperCase()}):</strong> ${expectedWeeklyHours.toFixed(1)} hours</p>
                         <p><strong>You're asking for:</strong> ${totalWeeklyHours} hours</p>
                         <p><strong>Student has available:</strong> ${hoursPerModule.toFixed(1)} hours</p>
                         <p><strong>Difference:</strong> ${(totalWeeklyHours - hoursPerModule).toFixed(1)} hours</p>
@@ -551,8 +599,17 @@
             window.open(fullURL, '_blank');
         }
 
-        function goToLearningDesign(moduleName, semesterLength, weeklyHours) {
-            // This function is no longer needed
+        function updateCreditInfo() {
+            const creditSystem = document.getElementById('creditSystem').value;
+            const customSection = document.getElementById('customCreditHours');
+            
+            if (creditSystem === 'custom') {
+                customSection.style.display = 'block';
+                document.getElementById('hoursPerCredit').required = true;
+            } else {
+                customSection.style.display = 'none';
+                document.getElementById('hoursPerCredit').required = false;
+            }
         }
     </script>
 </body>
