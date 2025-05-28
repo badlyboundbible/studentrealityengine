@@ -522,20 +522,80 @@
             }
         }
 
+        function toggleWeek(weekNum) {
+            const weekContent = document.getElementById(`week-content-${weekNum}`);
+            const collapseIcon = document.getElementById(`collapse-icon-${weekNum}`);
+            
+            if (weekContent.classList.contains('collapsed')) {
+                weekContent.classList.remove('collapsed');
+                weekContent.style.maxHeight = weekContent.scrollHeight + 'px';
+                collapseIcon.classList.remove('rotated');
+            } else {
+                weekContent.classList.add('collapsed');
+                weekContent.style.maxHeight = '0';
+                collapseIcon.classList.add('rotated');
+            }
+        }
+
         function duplicateWeek(weekNum) {
             const sourceWeek = document.getElementById(`week-${weekNum}`);
-            const topic = document.getElementById(`topic-${weekNum}`).value;
             
-            // Get all activities from source week
-            const activities = [];
-            sourceWeek.querySelectorAll('.activity-item').forEach(activity => {
-                const inputs = activity.querySelectorAll('input, select');
-                activities.push({
-                    description: inputs[0].value,
-                    type: inputs[1].value,
-                    hours: inputs[2].value
+            // Get all field values from source week
+            const topic = document.getElementById(`topic-${weekNum}`).value;
+            const outcome = document.getElementById(`outcome-${weekNum}`).value;
+            const prior = document.getElementById(`prior-${weekNum}`).value;
+            
+            // Get activities from all three sections
+            const activities = {
+                knowledge: [],
+                understanding: [],
+                application: []
+            };
+            
+            // Collect knowledge activities
+            const knowledgeContainer = document.getElementById(`knowledge-${weekNum}`);
+            if (knowledgeContainer) {
+                knowledgeContainer.querySelectorAll('.activity-item').forEach(activity => {
+                    const inputs = activity.querySelectorAll('input, select');
+                    if (inputs[0].value.trim()) {
+                        activities.knowledge.push({
+                            description: inputs[0].value,
+                            type: inputs[1].value,
+                            hours: inputs[2].value
+                        });
+                    }
                 });
-            });
+            }
+            
+            // Collect understanding activities  
+            const understandingContainer = document.getElementById(`understanding-${weekNum}`);
+            if (understandingContainer) {
+                understandingContainer.querySelectorAll('.activity-item').forEach(activity => {
+                    const inputs = activity.querySelectorAll('input, select');
+                    if (inputs[0].value.trim()) {
+                        activities.understanding.push({
+                            description: inputs[0].value,
+                            type: inputs[1].value,
+                            hours: inputs[2].value
+                        });
+                    }
+                });
+            }
+            
+            // Collect application activities
+            const applicationContainer = document.getElementById(`application-${weekNum}`);
+            if (applicationContainer) {
+                applicationContainer.querySelectorAll('.activity-item').forEach(activity => {
+                    const inputs = activity.querySelectorAll('input, select');
+                    if (inputs[0].value.trim()) {
+                        activities.application.push({
+                            description: inputs[0].value,
+                            type: inputs[1].value,
+                            hours: inputs[2].value
+                        });
+                    }
+                });
+            }
             
             // Find the next week number
             const nextWeekNum = weekNum + 1;
@@ -545,55 +605,65 @@
                 // If next week doesn't exist, create it
                 addWeek();
                 const newWeekNum = weekCount;
-                populateWeekContent(newWeekNum, topic, activities);
+                populateWeekContent(newWeekNum, topic, outcome, prior, activities);
             } else {
                 // If next week exists, ask if they want to overwrite
                 if (confirm(`This will overwrite the content of Week ${nextWeekNum}. Continue?`)) {
-                    populateWeekContent(nextWeekNum, topic, activities);
+                    populateWeekContent(nextWeekNum, topic, outcome, prior, activities);
                 }
             }
         }
 
-        function populateWeekContent(weekNum, topic, activities) {
-            // Copy topic (with "Copy of" prefix if it has content)
+        function populateWeekContent(weekNum, topic, outcome, prior, activities) {
+            // Populate text fields
             const topicInput = document.getElementById(`topic-${weekNum}`);
-            topicInput.value = topic ? `Copy of ${topic}` : '';
+            const outcomeInput = document.getElementById(`outcome-${weekNum}`);
+            const priorInput = document.getElementById(`prior-${weekNum}`);
             
-            // Clear existing activities
-            const weekActivities = document.getElementById(`activities-${weekNum}`);
-            weekActivities.innerHTML = '';
+            if (topicInput) topicInput.value = topic ? `Copy of ${topic}` : '';
+            if (outcomeInput) outcomeInput.value = outcome;
+            if (priorInput) priorInput.value = prior;
             
-            // Populate with copied activities
-            activities.forEach((activity, index) => {
-                const activityHTML = `
-                    <div class="activity-item">
-                        <input type="text" placeholder="Activity description" value="${activity.description}" onchange="updateWeekTotal(${weekNum})">
-                        <select onchange="updateWeekTotal(${weekNum})">
-                            <option value="">Select type</option>
-                            <option value="lecture" ${activity.type === 'lecture' ? 'selected' : ''}>Lecture</option>
-                            <option value="seminar" ${activity.type === 'seminar' ? 'selected' : ''}>Seminar</option>
-                            <option value="workshop" ${activity.type === 'workshop' ? 'selected' : ''}>Workshop</option>
-                            <option value="reading" ${activity.type === 'reading' ? 'selected' : ''}>Reading</option>
-                            <option value="assignment" ${activity.type === 'assignment' ? 'selected' : ''}>Assignment Work</option>
-                            <option value="research" ${activity.type === 'research' ? 'selected' : ''}>Independent Research</option>
-                            <option value="discussion" ${activity.type === 'discussion' ? 'selected' : ''}>Discussion</option>
-                            <option value="practical" ${activity.type === 'practical' ? 'selected' : ''}>Practical Exercise</option>
-                        </select>
-                        <input type="number" placeholder="Hours" min="0" step="0.5" value="${activity.hours}" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                        <button class="remove-btn" onclick="removeActivity(this)" ${activities.length === 1 ? 'style="display: none;"' : ''}>×</button>
-                    </div>
-                `;
-                weekActivities.insertAdjacentHTML('beforeend', activityHTML);
+            // Populate activities for each section
+            ['knowledge', 'understanding', 'application'].forEach(section => {
+                if (activities[section] && activities[section].length > 0) {
+                    const sectionContainer = document.getElementById(`${section}-${weekNum}`);
+                    if (sectionContainer) {
+                        // Clear existing activities (except the first default one)
+                        const existingActivities = sectionContainer.querySelectorAll('.activity-item');
+                        existingActivities.forEach((activity, index) => {
+                            if (index > 0) activity.remove();
+                        });
+                        
+                        // Populate first activity if it exists
+                        if (existingActivities.length > 0 && activities[section][0]) {
+                            const firstActivity = existingActivities[0];
+                            const inputs = firstActivity.querySelectorAll('input, select');
+                            inputs[0].value = activities[section][0].description;
+                            inputs[1].value = activities[section][0].type;
+                            inputs[2].value = activities[section][0].hours;
+                        }
+                        
+                        // Add remaining activities
+                        for (let i = 1; i < activities[section].length; i++) {
+                            addActivityToSection(weekNum, section);
+                            const newActivity = sectionContainer.lastElementChild;
+                            const inputs = newActivity.querySelectorAll('input, select');
+                            inputs[0].value = activities[section][i].description;
+                            inputs[1].value = activities[section][i].type;
+                            inputs[2].value = activities[section][i].hours;
+                        }
+                    }
+                }
             });
             
-            // Show remove buttons if multiple activities
-            if (activities.length > 1) {
-                weekActivities.querySelectorAll('.remove-btn').forEach(btn => {
-                    btn.style.display = 'block';
-                });
-            }
-            
             updateWeekTotal(weekNum);
+            
+            // Ensure the week is expanded and scroll to it
+            const weekContent = document.getElementById(`week-content-${weekNum}`);
+            if (weekContent && weekContent.classList.contains('collapsed')) {
+                toggleWeek(weekNum);
+            }
             
             // Scroll to the populated week
             document.getElementById(`week-${weekNum}`).scrollIntoView({ behavior: 'smooth' });
@@ -621,10 +691,11 @@
             weekCount++;
             const weekNum = weekNumber || weekCount;
             const weekDate = getWeekDate(weekNum);
+            const isCollapsed = weekNum > 1; // Collapse all weeks except week 1
             
             const weekHTML = `
                 <div class="week-planner" id="week-${weekNum}">
-                    <div class="week-header">
+                    <div class="week-header" onclick="toggleWeek(${weekNum})">
                         <div>
                             <div class="week-number">Week ${weekNum}</div>
                             <div style="font-size: 0.9em; color: #7f8c8d; margin-top: 5px;">
@@ -634,110 +705,113 @@
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <div class="week-total" id="total-${weekNum}">0 hours</div>
                             <div style="display: flex; gap: 5px;">
-                                <button onclick="duplicateWeek(${weekNum})" style="background: #00b894; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Duplicate this week">
+                                <button onclick="event.stopPropagation(); duplicateWeek(${weekNum})" style="background: #00b894; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Duplicate this week">
                                     📋
                                 </button>
-                                <button onclick="removeWeek(${weekNum})" style="background: #ff6b6b; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Remove this week">
+                                <button onclick="event.stopPropagation(); removeWeek(${weekNum})" style="background: #ff6b6b; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" title="Remove this week">
                                     🗑️
                                 </button>
                             </div>
+                            <div class="collapse-icon ${isCollapsed ? 'rotated' : ''}" id="collapse-icon-${weekNum}">▼</div>
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="topic-${weekNum}">Week Topic/Theme</label>
-                        <input type="text" id="topic-${weekNum}" placeholder="e.g., Introduction to Strategic Planning" onchange="calculateSummary()">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="outcome-${weekNum}">Learning Outcome for this Week</label>
-                        <textarea id="outcome-${weekNum}" placeholder="By the end of this week, students will be able to..." style="min-height: 60px;" onchange="calculateSummary()"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="prior-${weekNum}">Starting Knowledge (What do students already know?)</label>
-                        <textarea id="prior-${weekNum}" placeholder="Students should already understand... / have covered... / be familiar with..." style="min-height: 50px;"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Learning Activities (Aim for balance across Knowledge, Understanding & Application)</label>
+                    <div class="week-content ${isCollapsed ? 'collapsed' : ''}" id="week-content-${weekNum}" ${isCollapsed ? 'style="max-height: 0;"' : ''}>
+                        <div class="form-group">
+                            <label for="topic-${weekNum}">Week Topic/Theme</label>
+                            <input type="text" id="topic-${weekNum}" placeholder="e.g., Introduction to Strategic Planning" onchange="calculateSummary()">
+                        </div>
                         
-                        <!-- Knowledge Activities -->
-                        <div style="background: #e8f4fd; border-left: 4px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #1976d2; margin-bottom: 10px;">🧠 Knowledge Activities (Remember & Understand)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students recall facts, explain concepts, and build foundational understanding</p>
-                            <div class="activity-list knowledge-activities" id="knowledge-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Lecture on key concepts" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="lecture">Lecture</option>
-                                        <option value="reading">Essential Reading</option>
-                                        <option value="video">Video Content</option>
-                                        <option value="discussion">Q&A Discussion</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                        <div class="form-group">
+                            <label for="outcome-${weekNum}">Learning Outcome for this Week</label>
+                            <textarea id="outcome-${weekNum}" placeholder="By the end of this week, students will be able to..." style="min-height: 60px;" onchange="calculateSummary()"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="prior-${weekNum}">Starting Knowledge (What do students already know?)</label>
+                            <textarea id="prior-${weekNum}" placeholder="Students should already understand... / have covered... / be familiar with..." style="min-height: 50px;"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Learning Activities (Aim for balance across Knowledge, Understanding & Application)</label>
+                            
+                            <!-- Knowledge Activities -->
+                            <div style="background: #e8f4fd; border-left: 4px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #1976d2; margin-bottom: 10px;">🧠 Knowledge Activities (Remember & Understand)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students recall facts, explain concepts, and build foundational understanding</p>
+                                <div class="activity-list knowledge-activities" id="knowledge-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Lecture on key concepts" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="lecture">Lecture</option>
+                                            <option value="reading">Essential Reading</option>
+                                            <option value="video">Video Content</option>
+                                            <option value="discussion">Q&A Discussion</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'knowledge')" style="background: #2196f3;">+ Add Knowledge Activity</button>
+                            </div>
+                            
+                            <!-- Understanding Activities -->
+                            <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #7b1fa2; margin-bottom: 10px;">💡 Understanding Activities (Comprehension & Analysis)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students explain, interpret, and make connections between ideas</p>
+                                <div class="activity-list understanding-activities" id="understanding-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Group discussion on implications" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="discussion">Discussion</option>
+                                            <option value="seminar">Seminar</option>
+                                            <option value="tutorial">Tutorial</option>
+                                            <option value="case-study">Case Study</option>
+                                            <option value="analysis">Analysis Exercise</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'understanding')" style="background: #9c27b0;">+ Add Understanding Activity</button>
+                            </div>
+                            
+                            <!-- Application Activities -->
+                            <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #388e3c; margin-bottom: 10px;">🚀 Application Activities (Apply & Create)</h4>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students use knowledge in new situations and create something new</p>
+                                <div class="activity-list application-activities" id="application-${weekNum}">
+                                    <div class="activity-item">
+                                        <input type="text" placeholder="e.g., Practical exercise or project work" onchange="updateWeekTotal(${weekNum})">
+                                        <select onchange="updateWeekTotal(${weekNum})">
+                                            <option value="">Select type</option>
+                                            <option value="workshop">Workshop</option>
+                                            <option value="practical">Practical Exercise</option>
+                                            <option value="project">Project Work</option>
+                                            <option value="assignment">Assignment Prep</option>
+                                            <option value="simulation">Simulation</option>
+                                        </select>
+                                        <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
+                                        <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
+                                    </div>
+                                </div>
+                                <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'application')" style="background: #4caf50;">+ Add Application Activity</button>
+                            </div>
+                            
+                            <!-- Learning Balance Indicator -->
+                            <div id="balance-indicator-${weekNum}" style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
+                                <h4 style="color: #f57c00; margin-bottom: 10px;">⚖️ Learning Balance Check</h4>
+                                <div id="balance-content-${weekNum}">
+                                    <p style="color: #666;">Add activities above to see your learning balance analysis</p>
                                 </div>
                             </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'knowledge')" style="background: #2196f3;">+ Add Knowledge Activity</button>
                         </div>
                         
-                        <!-- Understanding Activities -->
-                        <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #7b1fa2; margin-bottom: 10px;">💡 Understanding Activities (Comprehension & Analysis)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students explain, interpret, and make connections between ideas</p>
-                            <div class="activity-list understanding-activities" id="understanding-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Group discussion on implications" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="discussion">Discussion</option>
-                                        <option value="seminar">Seminar</option>
-                                        <option value="tutorial">Tutorial</option>
-                                        <option value="case-study">Case Study</option>
-                                        <option value="analysis">Analysis Exercise</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
-                                </div>
-                            </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'understanding')" style="background: #9c27b0;">+ Add Understanding Activity</button>
+                        <div class="efficiency-tip" style="display: none;" id="tip-${weekNum}">
+                            <strong>💡 Efficiency Tip:</strong> <span></span>
                         </div>
-                        
-                        <!-- Application Activities -->
-                        <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #388e3c; margin-bottom: 10px;">🚀 Application Activities (Apply & Create)</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Help students use knowledge in new situations and create something new</p>
-                            <div class="activity-list application-activities" id="application-${weekNum}">
-                                <div class="activity-item">
-                                    <input type="text" placeholder="e.g., Practical exercise or project work" onchange="updateWeekTotal(${weekNum})">
-                                    <select onchange="updateWeekTotal(${weekNum})">
-                                        <option value="">Select type</option>
-                                        <option value="workshop">Workshop</option>
-                                        <option value="practical">Practical Exercise</option>
-                                        <option value="project">Project Work</option>
-                                        <option value="assignment">Assignment Prep</option>
-                                        <option value="simulation">Simulation</option>
-                                    </select>
-                                    <input type="number" placeholder="Hours" min="0" step="0.5" onchange="updateWeekTotal(${weekNum})" style="max-width: 100px;">
-                                    <button class="remove-btn" onclick="removeActivity(this)" style="display: none;">×</button>
-                                </div>
-                            </div>
-                            <button class="add-activity-btn" onclick="addActivityToSection(${weekNum}, 'application')" style="background: #4caf50;">+ Add Application Activity</button>
-                        </div>
-                        
-                        <!-- Learning Balance Indicator -->
-                        <div id="balance-indicator-${weekNum}" style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
-                            <h4 style="color: #f57c00; margin-bottom: 10px;">⚖️ Learning Balance Check</h4>
-                            <div id="balance-content-${weekNum}">
-                                <p style="color: #666;">Add activities above to see your learning balance analysis</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="efficiency-tip" style="display: none;" id="tip-${weekNum}">
-                        <strong>💡 Efficiency Tip:</strong> <span></span>
                     </div>
                 </div>
             `;
@@ -1077,24 +1151,33 @@
 
         function collectWeekData() {
             const weeks = [];
-            document.querySelectorAll('.week-planner').forEach((week, index) => {
-                const weekNum = index + 1;
+            document.querySelectorAll('.week-planner').forEach(week => {
+                const weekNum = parseInt(week.id.split('-')[1]);
                 const topic = document.getElementById(`topic-${weekNum}`).value || `Week ${weekNum}`;
+                const outcome = document.getElementById(`outcome-${weekNum}`).value || '';
+                const prior = document.getElementById(`prior-${weekNum}`).value || '';
                 const activities = [];
                 
-                week.querySelectorAll('.activity-item').forEach(activity => {
-                    const inputs = activity.querySelectorAll('input, select');
-                    if (inputs[0].value.trim()) {
-                        activities.push({
-                            description: inputs[0].value,
-                            type: inputs[1].value,
-                            hours: parseFloat(inputs[2].value) || 0
+                // Collect activities from all sections
+                ['knowledge', 'understanding', 'application'].forEach(section => {
+                    const sectionContainer = document.getElementById(`${section}-${weekNum}`);
+                    if (sectionContainer) {
+                        sectionContainer.querySelectorAll('.activity-item').forEach(activity => {
+                            const inputs = activity.querySelectorAll('input, select');
+                            if (inputs[0].value.trim()) {
+                                activities.push({
+                                    description: inputs[0].value,
+                                    type: inputs[1].value,
+                                    hours: parseFloat(inputs[2].value) || 0,
+                                    section: section
+                                });
+                            }
                         });
                     }
                 });
                 
-                if (activities.length > 0) {
-                    weeks.push({ weekNum, topic, activities });
+                if (activities.length > 0 || topic.trim() || outcome.trim()) {
+                    weeks.push({ weekNum, topic, outcome, prior, activities });
                 }
             });
             
@@ -1102,12 +1185,17 @@
         }
 
         function exportWeeklyPlanAsCSV(weeks) {
-            let csv = 'Week,Topic,Activity,Type,Hours\n';
+            let csv = 'Week,Topic,Learning Outcome,Prior Knowledge,Activity,Type,Hours,Section\n';
             
             weeks.forEach(week => {
-                week.activities.forEach(activity => {
-                    csv += `${week.weekNum},"${week.topic}","${activity.description}","${activity.type}",${activity.hours}\n`;
-                });
+                const baseRow = `${week.weekNum},"${week.topic}","${week.outcome}","${week.prior}"`;
+                if (week.activities.length > 0) {
+                    week.activities.forEach(activity => {
+                        csv += `${baseRow},"${activity.description}","${activity.type}",${activity.hours},"${activity.section}"\n`;
+                    });
+                } else {
+                    csv += `${baseRow},"","","",""\n`;
+                }
             });
             
             downloadFile(csv, `${moduleNameText.replace(/[^a-z0-9]/gi, '_')}_weekly_plan.csv`, 'text/csv');
@@ -1144,6 +1232,11 @@
                         h1 { color: #2c3e50; }
                         h2 { color: #00b894; }
                         .summary { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+                        .learning-sections { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 20px 0; }
+                        .section { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+                        .knowledge { border-left: 4px solid #2196f3; }
+                        .understanding { border-left: 4px solid #9c27b0; }
+                        .application { border-left: 4px solid #4caf50; }
                         ${forPrint ? '@media print { .no-print { display: none; } }' : ''}
                     </style>
                 </head>
@@ -1155,30 +1248,46 @@
                         <strong>Total Planned Weeks:</strong> ${weeks.length}
                     </div>
                     
-                    ${weeks.map(week => `
+                    ${weeks.map(week => {
+                        const knowledgeActivities = week.activities.filter(a => a.section === 'knowledge');
+                        const understandingActivities = week.activities.filter(a => a.section === 'understanding');
+                        const applicationActivities = week.activities.filter(a => a.section === 'application');
+                        const totalHours = week.activities.reduce((sum, act) => sum + act.hours, 0);
+                        
+                        return `
                         <div class="week-section">
                             <h2>Week ${week.weekNum}: ${week.topic}</h2>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Activity</th>
-                                        <th>Type</th>
-                                        <th>Hours</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${week.activities.map(activity => `
-                                        <tr>
-                                            <td>${activity.description}</td>
-                                            <td>${activity.type}</td>
-                                            <td>${activity.hours}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                            <p><strong>Week Total: ${week.activities.reduce((sum, act) => sum + act.hours, 0)} hours</strong></p>
+                            ${week.outcome ? `<p><strong>Learning Outcome:</strong> ${week.outcome}</p>` : ''}
+                            ${week.prior ? `<p><strong>Prior Knowledge:</strong> ${week.prior}</p>` : ''}
+                            
+                            <div class="learning-sections">
+                                <div class="section knowledge">
+                                    <h4>🧠 Knowledge Activities</h4>
+                                    ${knowledgeActivities.length > 0 ? 
+                                        knowledgeActivities.map(a => `<p>${a.description} (${a.hours}h)</p>`).join('') : 
+                                        '<p>No knowledge activities</p>'
+                                    }
+                                </div>
+                                <div class="section understanding">
+                                    <h4>💡 Understanding Activities</h4>
+                                    ${understandingActivities.length > 0 ? 
+                                        understandingActivities.map(a => `<p>${a.description} (${a.hours}h)</p>`).join('') : 
+                                        '<p>No understanding activities</p>'
+                                    }
+                                </div>
+                                <div class="section application">
+                                    <h4>🚀 Application Activities</h4>
+                                    ${applicationActivities.length > 0 ? 
+                                        applicationActivities.map(a => `<p>${a.description} (${a.hours}h)</p>`).join('') : 
+                                        '<p>No application activities</p>'
+                                    }
+                                </div>
+                            </div>
+                            
+                            <p><strong>Week Total: ${totalHours} hours</strong></p>
                         </div>
-                    `).join('')}
+                    `;
+                    }).join('')}
                     
                     ${forPrint ? `
                         <div class="no-print" style="text-align: center; margin-top: 30px;">
@@ -1202,10 +1311,6 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-        }
-
-        function upgradeToLearningDesign() {
-            // This function is no longer needed
         }
 
         function backToRealityCheck() {
