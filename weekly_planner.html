@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+            // Set default start date and update display
+            document.getElementById('startDate').value = formatDateForInput(semesterStartDate);<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -367,8 +368,8 @@
         
         <div class="main-content">
             <div class="efficiency-tip">
-                <strong>💡 Planning Tip:</strong> Focus on essential activities that directly support learning outcomes. 
-                Remember: students are juggling multiple modules, part-time work, and life!
+                <strong>💡 Planning Tip:</strong> Your target hours are based on realistic student availability across multiple modules. 
+                Focus on essential activities that directly support learning outcomes rather than trying to fill all available time.
             </div>
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
@@ -437,7 +438,7 @@
 
     <script>
         let weekCount = 0;
-        let targetWeeklyHours = 18;
+        let targetWeeklyHours = 8.75; // Updated realistic default
         let semesterWeeks = 12;
         let moduleNameText = 'Your Module';
         let semesterStartDate = new Date(); // Will be set from user input or default
@@ -455,7 +456,7 @@
             
             moduleNameText = urlParams.get('module') || 'Your Module';
             semesterWeeks = parseInt(urlParams.get('weeks')) || 12;
-            targetWeeklyHours = parseFloat(urlParams.get('hours')) || 18;
+            targetWeeklyHours = parseFloat(urlParams.get('hours')) || 8.75; // Updated default
             
             // Set default start date to next Monday
             const today = new Date();
@@ -465,13 +466,21 @@
             
             // Additional data for context
             const credits = urlParams.get('credits') || '';
-            const approach = urlParams.get('approach') || '';
+            const approach = urlParams.get('approach') || 'standard';
+            
+            // Convert approach codes to readable names
+            const approachNames = {
+                'standard': 'Standard Working Week (35h)',
+                'extended': 'Extended Working Week (37.5h)', 
+                'fulltime': 'Full-time Commitment (40h)',
+                'maximum': 'Legal Maximum (48h)',
+                'unrealistic': 'Unrealistic (60h+)'
+            };
             
             // Update display
             document.getElementById('moduleName').textContent = moduleNameText;
             document.getElementById('semesterLength').textContent = semesterWeeks + ' weeks';
             document.getElementById('targetHours').textContent = targetWeeklyHours + ' hours';
-            document.getElementById('startDate').value = formatDateForInput(semesterStartDate);
             
             // Add contextual information if available
             if (credits && approach) {
@@ -479,9 +488,42 @@
                 contextInfo.className = 'info-item';
                 contextInfo.innerHTML = `
                     <h3>Context</h3>
-                    <p>${credits} credits (${approach.replace('_', ' ')})</p>
+                    <p>${credits} credits (${approachNames[approach] || approach})</p>
                 `;
                 document.querySelector('.module-info').appendChild(contextInfo);
+            }
+            
+            // Add reality check info box
+            if (targetWeeklyHours < 15) {
+                const realityBox = document.createElement('div');
+                realityBox.style.cssText = `
+                    background: #e8f5e8; 
+                    border-left: 4px solid #4caf50; 
+                    padding: 15px; 
+                    margin: 20px 0; 
+                    border-radius: 0 8px 8px 0;
+                `;
+                realityBox.innerHTML = `
+                    <h4 style="color: #2e7d32; margin-bottom: 10px;">✅ Realistic Expectations</h4>
+                    <p style="color: #333;">Your target of ${targetWeeklyHours} hours/week per module aligns well with student reality. 
+                    This leaves room for students to succeed across all their modules while maintaining work-life balance.</p>
+                `;
+                document.querySelector('.main-content').insertBefore(realityBox, document.querySelector('.main-content').firstElementChild.nextSibling);
+            } else if (targetWeeklyHours > 20) {
+                const warningBox = document.createElement('div');
+                warningBox.style.cssText = `
+                    background: #fff3e0; 
+                    border-left: 4px solid #ff9800; 
+                    padding: 15px; 
+                    margin: 20px 0; 
+                    border-radius: 0 8px 8px 0;
+                `;
+                warningBox.innerHTML = `
+                    <h4 style="color: #f57c00; margin-bottom: 10px;">⚠️ High Expectations Warning</h4>
+                    <p style="color: #333;">Your target of ${targetWeeklyHours} hours/week is quite high. Remember that students are taking 
+                    multiple modules simultaneously. Consider focusing on essential learning outcomes only.</p>
+                `;
+                document.querySelector('.main-content').insertBefore(warningBox, document.querySelector('.main-content').firstElementChild.nextSibling);
             }
         }
 
@@ -937,15 +979,18 @@
             const totalElement = document.getElementById(`total-${weekNum}`);
             totalElement.textContent = total.toFixed(1) + ' hours';
             
-            // Update styling based on target hours
+            // Update styling based on target hours - IMPROVED LOGIC
             const tipElement = document.getElementById(`tip-${weekNum}`);
             
-            if (total > targetWeeklyHours * 1.5) {
+            if (total > targetWeeklyHours * 1.8) {
                 totalElement.className = 'week-total danger';
-                showEfficiencyTip(weekNum, 'This week is significantly over your target. Consider prioritizing essential activities or breaking content across multiple weeks.');
+                showEfficiencyTip(weekNum, `This week is significantly over your realistic target (${targetWeeklyHours}h). Students taking multiple modules cannot sustain this workload.`);
+            } else if (total > targetWeeklyHours * 1.3) {
+                totalElement.className = 'week-total warning';
+                showEfficiencyTip(weekNum, `This week exceeds your realistic target (${targetWeeklyHours}h). Consider prioritising essential activities only.`);
             } else if (total > targetWeeklyHours) {
                 totalElement.className = 'week-total warning';
-                showEfficiencyTip(weekNum, 'This week is above your target. Look for opportunities to streamline activities or use more efficient formats.');
+                showEfficiencyTip(weekNum, `This week is slightly over your target (${targetWeeklyHours}h). Look for opportunities to streamline activities.`);
             } else {
                 totalElement.className = 'week-total';
                 hideEfficiencyTip(weekNum);
@@ -1103,7 +1148,8 @@
             if (ratio <= 1.1) return 'Excellent';
             if (ratio <= 1.3) return 'Good';
             if (ratio <= 1.6) return 'Fair';
-            return 'Needs Work';
+            if (ratio <= 2.0) return 'Concerning';
+            return 'Unrealistic';
         }
 
         function exportPlan() {
@@ -1244,8 +1290,9 @@
                     <h1>${moduleNameText}</h1>
                     <div class="summary">
                         <strong>Semester Length:</strong> ${semesterWeeks} weeks<br>
-                        <strong>Target Hours per Week:</strong> ${targetWeeklyHours}<br>
-                        <strong>Total Planned Weeks:</strong> ${weeks.length}
+                        <strong>Target Hours per Week:</strong> ${targetWeeklyHours} (based on realistic student availability)<br>
+                        <strong>Total Planned Weeks:</strong> ${weeks.length}<br>
+                        <strong>Context:</strong> Students typically have limited time per module when taking multiple courses simultaneously
                     </div>
                     
                     ${weeks.map(week => {
