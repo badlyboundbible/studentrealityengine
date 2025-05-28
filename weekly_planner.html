@@ -424,8 +424,8 @@
                         <div class="stat-label">Total Hours</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" id="efficiency">Good</div>
-                        <div class="stat-label">Efficiency Rating</div>
+                        <div class="stat-number" id="efficiency" style="font-size: 1.2em;">🟢 GREEN</div>
+                        <div class="stat-label">RAG Status</div>
                     </div>
                 </div>
             </div>
@@ -439,6 +439,8 @@
     <script>
         let weekCount = 0;
         let targetWeeklyHours = 8.75; // Updated realistic default
+        let ragThresholds = { green: 8.75, amber: 13.1 }; // Default thresholds
+        let currentRAGStatus = 'green';
         let semesterWeeks = 12;
         let moduleNameText = 'Your Module';
         let semesterStartDate = new Date(); // Will be set from user input or default
@@ -1143,13 +1145,14 @@
         }
 
         function calculateEfficiencyRating(avgHours, targetHours) {
-            const ratio = avgHours / targetHours;
-            
-            if (ratio <= 1.1) return 'Excellent';
-            if (ratio <= 1.3) return 'Good';
-            if (ratio <= 1.6) return 'Fair';
-            if (ratio <= 2.0) return 'Concerning';
-            return 'Unrealistic';
+            // Use RAG thresholds for efficiency rating
+            if (avgHours <= ragThresholds.green) {
+                return '🟢 GREEN - Realistic';
+            } else if (avgHours <= ragThresholds.amber) {
+                return '🟡 AMBER - Pushing It';
+            } else {
+                return '🔴 RED - Unrealistic';
+            }
         }
 
         function exportPlan() {
@@ -1290,7 +1293,7 @@
                     <h1>${moduleNameText}</h1>
                     <div class="summary">
                         <strong>Semester Length:</strong> ${semesterWeeks} weeks<br>
-                        <strong>Target Hours per Week:</strong> ${targetWeeklyHours} (based on realistic student availability)<br>
+                        <strong>Target Hours per Week:</strong> ${targetWeeklyHours} (🟢 ≤${ragThresholds.green.toFixed(1)}h | 🟡 ≤${ragThresholds.amber.toFixed(1)}h | 🔴 >${ragThresholds.amber.toFixed(1)}h)<br>
                         <strong>Total Planned Weeks:</strong> ${weeks.length}<br>
                         <strong>Context:</strong> Students typically have limited time per module when taking multiple courses simultaneously
                     </div>
